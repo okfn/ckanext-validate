@@ -1,0 +1,6 @@
+include README.rst
+include LICENSE
+include requirements.txt
+recursive-include ckanext/validate *.html *.json *.js *.less *.css *.mo *.yml
+recursive-include ckanext/validate/migration *.ini *.py *.mako
+recursive-include ckanext/validate/public *.*

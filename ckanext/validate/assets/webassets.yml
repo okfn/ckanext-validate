@@ -1,0 +1,14 @@
+# validate-js:
+#   filter: rjsmin
+#   output: ckanext-validate/%(version)s-validate.js
+#   contents:
+#     - js/validate.js
+#   extra:
+#     preload:
+#       - base/main
+
+# validate-css:
+#   filter: cssrewrite
+#   output: ckanext-validate/%(version)s-validate.css
+#   contents:
+#     - css/validate.css
