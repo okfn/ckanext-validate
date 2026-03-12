@@ -1,0 +1,12 @@
+{% if data[field.field_name] %}
+  {% set status = data[field.field_name] %}
+  {% if status == 'success' %}
+    <span class="badge badge-success">{{ _('Valid') }}</span>
+  {% elif status == 'failure' %}
+    <span class="badge badge-danger">{{ _('Invalid') }}</span>
+  {% elif status == 'error' %}
+    <span class="badge badge-warning">{{ _('Error') }}</span>
+  {% endif %}
+{% else %}
+  <span class="badge badge-secondary">{{ _('Not validated') }}</span>
+{% endif %}

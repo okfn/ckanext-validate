@@ -1,2 +1,3 @@
 git+https://github.com/frictionlessdata/frictionless-py.git@be08dcf491781a565d230f47e08707e703292d85
+ckanext-scheming
 
