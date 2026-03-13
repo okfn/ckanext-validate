@@ -91,3 +91,10 @@ resource_fields:
     output_validators: ignore_missing
     form_snippet: null
     display_snippet: null
+
+  - field_name: validation_errors
+    label: Validation Errors
+    validators: ignore_missing unicode_safe
+    output_validators: ignore_missing
+    form_snippet: null
+    display_snippet: null

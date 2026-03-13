@@ -22,7 +22,27 @@
       {% elif status == 'failure' %}
         <span class="badge badge-danger" style="font-size:1rem;">{{ _('Invalid') }}</span>
         {% if res.validation_error_count %}
-          <p class="mt-2">{{ res.validation_error_count }} {{ _('errors detected') }}</p>
+          <p class="mt-2"><strong>{{ res.validation_error_count }} {{ _('errors detected') }}</strong></p>
+        {% endif %}
+        {% if validation_errors %}
+          <table class="table table-condensed table-bordered mt-2">
+            <thead>
+              <tr>
+                <th>{{ _('Row') }}</th>
+                <th>{{ _('Field') }}</th>
+                <th>{{ _('Message') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for err in validation_errors %}
+              <tr>
+                <td>{{ err.row or '-' }}</td>
+                <td>{{ err.field or '-' }}</td>
+                <td>{{ err.message }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% endif %}
       {% elif status == 'error' %}
         <span class="badge badge-warning" style="font-size:1rem;">{{ _('Validation Error') }}</span>

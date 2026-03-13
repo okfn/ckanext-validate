@@ -1,3 +1,4 @@
+import json
 import logging
 
 from flask import Blueprint
@@ -39,6 +40,14 @@ def validate(package_id, resource_id):
         except toolkit.NotAuthorized:
             base.abort(403, toolkit._("Not authorized to validate this resource"))
 
+    validation_errors = []
+    raw = resource.get("validation_errors")
+    if raw:
+        try:
+            validation_errors = json.loads(raw)
+        except (ValueError, TypeError):
+            pass
+
     return base.render(
         "package/resource_validate.html",
         extra_vars={
@@ -48,5 +57,6 @@ def validate(package_id, resource_id):
             "resource": resource,
             "res": resource,
             "errors": errors,
+            "validation_errors": validation_errors,
         },
     )

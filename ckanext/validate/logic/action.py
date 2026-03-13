@@ -1,6 +1,8 @@
+import json
 import logging
 
 import frictionless
+from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
@@ -29,7 +31,12 @@ def resource_validate(context, data_dict):
             {"format": [toolkit._("Only CSV resources can be validated.")]}
         )
 
-    source = resource["url"]
+    if resource.get("url_type") == "upload":
+        upload = uploader.get_resource_uploader(resource)
+        file_path = upload.get_path(resource["id"])
+        source = "file://" + file_path
+    else:
+        source = resource["url"]
     log.debug("Validating resource %s from %s", resource_id, source)
 
     try:
@@ -40,16 +47,27 @@ def resource_validate(context, data_dict):
             "id": resource_id,
             "validation_status": "error",
             "validation_error_count": 0,
+            "validation_errors": json.dumps([]),
         }
         return toolkit.get_action("resource_patch")({"ignore_auth": True}, patch_data)
 
     status = "success" if report.valid else "failure"
-    error_count = sum(len(table.errors) for table in report.tasks)
+    error_details = [
+        {
+            "row": getattr(err, "row_number", None),
+            "field": getattr(err, "field_name", None),
+            "message": err.message,
+        }
+        for task in report.tasks
+        for err in task.errors
+    ]
+    error_count = len(error_details)
 
     patch_data = {
         "id": resource_id,
         "validation_status": status,
         "validation_error_count": error_count,
+        "validation_errors": json.dumps(error_details),
     }
 
     updated_resource = toolkit.get_action("resource_patch")(
