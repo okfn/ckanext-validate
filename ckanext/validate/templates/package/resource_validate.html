@@ -18,9 +18,9 @@
       <h3>{{ _('Current Status') }}</h3>
       {% set status = res.validation_status %}
       {% if status == 'success' %}
-        <span class="badge badge-success" style="font-size:1rem;">{{ _('Valid') }}</span>
+        <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
       {% elif status == 'failure' %}
-        <span class="badge badge-danger" style="font-size:1rem;">{{ _('Invalid') }}</span>
+        <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
         {% if res.validation_error_count %}
           <p class="mt-2"><strong>{{ res.validation_error_count }} {{ _('errors detected') }}</strong></p>
         {% endif %}
@@ -45,10 +45,10 @@
           </table>
         {% endif %}
       {% elif status == 'error' %}
-        <span class="badge badge-warning" style="font-size:1rem;">{{ _('Validation Error') }}</span>
+        <span class="validate-badge validate-badge--error">{{ _('Validation Error') }}</span>
         <p class="mt-2">{{ _('An error occurred while running the validator.') }}</p>
       {% else %}
-        <span class="badge badge-secondary" style="font-size:1rem;">{{ _('Not validated') }}</span>
+        <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
       {% endif %}
     </div>
   </div>
