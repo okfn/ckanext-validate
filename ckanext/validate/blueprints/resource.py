@@ -43,6 +43,9 @@ def validate(package_id, resource_id):
         "package/resource_validate.html",
         extra_vars={
             "pkg_dict": pkg_dict,
+            "package": pkg_dict,
+            "pkg": pkg_dict,
+            "resource": resource,
             "res": resource,
             "errors": errors,
         },

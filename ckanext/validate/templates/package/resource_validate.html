@@ -1,4 +1,4 @@
-{% ckan_extends %}
+{% extends "package/base.html" %}
 
 {% block primary_content_inner %}
   <h1>{{ _('Resource Validation') }}</h1>
@@ -35,8 +35,7 @@
 
   {# Run validation button #}
   <form method="post" action="{{ h.url_for('resource_validate.validate', package_id=pkg_dict.name, resource_id=res.id) }}">
-    <input type="hidden" name="csrf_field_name" value="{{ csrf_token() }}" />
-    {{ csrf_input() }}
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-primary">
       <i class="fa fa-check-circle"></i>
       {{ _('Run Validation') }}
