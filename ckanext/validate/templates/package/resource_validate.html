@@ -1,0 +1,45 @@
+{% ckan_extends %}
+
+{% block primary_content_inner %}
+  <h1>{{ _('Resource Validation') }}</h1>
+  <p class="text-muted">{{ res.name or res.url }}</p>
+
+  {% if errors %}
+    <div class="alert alert-danger">
+      {% for key, msgs in errors.items() %}
+        <p><strong>{{ key }}:</strong> {{ msgs | join(', ') }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# Current status badge #}
+  <div class="module module-narrow module-shallow">
+    <div class="module-content">
+      <h3>{{ _('Current Status') }}</h3>
+      {% set status = res.validation_status %}
+      {% if status == 'success' %}
+        <span class="badge badge-success" style="font-size:1rem;">{{ _('Valid') }}</span>
+      {% elif status == 'failure' %}
+        <span class="badge badge-danger" style="font-size:1rem;">{{ _('Invalid') }}</span>
+        {% if res.validation_error_count %}
+          <p class="mt-2">{{ res.validation_error_count }} {{ _('errors detected') }}</p>
+        {% endif %}
+      {% elif status == 'error' %}
+        <span class="badge badge-warning" style="font-size:1rem;">{{ _('Validation Error') }}</span>
+        <p class="mt-2">{{ _('An error occurred while running the validator.') }}</p>
+      {% else %}
+        <span class="badge badge-secondary" style="font-size:1rem;">{{ _('Not validated') }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Run validation button #}
+  <form method="post" action="{{ h.url_for('resource_validate.validate', package_id=pkg_dict.name, resource_id=res.id) }}">
+    <input type="hidden" name="csrf_field_name" value="{{ csrf_token() }}" />
+    {{ csrf_input() }}
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-check-circle"></i>
+      {{ _('Run Validation') }}
+    </button>
+  </form>
+{% endblock %}

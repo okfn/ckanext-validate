@@ -84,3 +84,10 @@ resource_fields:
     output_validators: ignore_missing
     form_snippet: null
     display_snippet: validation_status.html
+
+  - field_name: validation_error_count
+    label: Validation Error Count
+    validators: ignore_missing int_validator
+    output_validators: ignore_missing
+    form_snippet: null
+    display_snippet: null

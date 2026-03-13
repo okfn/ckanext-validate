@@ -1,0 +1,13 @@
+{% ckan_extends %}
+
+{% block resource_item_title %}
+  {{ super() }}
+  {% set status = res.validation_status %}
+  {% if status == 'success' %}
+    <span class="badge badge-success">{{ _('Valid') }}</span>
+  {% elif status == 'failure' %}
+    <span class="badge badge-danger">{{ _('Invalid') }}</span>
+  {% elif status == 'error' %}
+    <span class="badge badge-warning">{{ _('Error') }}</span>
+  {% endif %}
+{% endblock %}
