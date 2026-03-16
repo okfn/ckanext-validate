@@ -1,7 +1,7 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
-from ckanext.validate.logic import action as validate_action
+from ckanext.validate.actions import action as validate_action
 from ckanext.validate.blueprints import resource as validate_blueprint
 
 
