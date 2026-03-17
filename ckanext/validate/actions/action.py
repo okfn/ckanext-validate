@@ -36,8 +36,6 @@ def resource_validate(context, data_dict):
     else:
         source = resource["url"]
 
-    log.debug("Validating resource %s from %s", resource_id, source)
-
     try:
         if is_uploaded:
             with system.use_context(trusted=True):
@@ -52,8 +50,6 @@ def resource_validate(context, data_dict):
         raise toolkit.ValidationError(
             {"frictionless": [toolkit._("System error: {0}").format(str(exc))]}
         )
-
-    log.debug("Frictionless Report: %s", report.to_dict())
 
     status = "success" if report.valid else "failure"
 
