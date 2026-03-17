@@ -39,6 +39,7 @@ def resource_validate(context, data_dict):
         source = "file://" + file_path
     else:
         source = resource["url"]
+
     log.debug("Validating resource %s from %s", resource_id, source)
 
     try:
@@ -48,24 +49,30 @@ def resource_validate(context, data_dict):
         else:
             report = frictionless.validate(source)
     except Exception as exc:
-        log.error("Frictionless raised an exception for resource %s: %s", resource_id, exc)
-        patch_data = {
-            "id": resource_id,
-            "validation_status": "error",
-            "validation_error_count": 0,
-            "validation_errors": json.dumps([]),
-        }
-        return toolkit.get_action("resource_patch")({"ignore_auth": True}, patch_data)
+        log.exception(
+            "Frictionless raised an exception for resource %s",
+            resource_id,
+        )
+        raise toolkit.ValidationError(
+            {
+                "frictionless": [
+                    toolkit._(
+                        "An internal error occurred while validating the resource."
+                    )
+                ]
+            }
+        ) from exc
 
     status = "success" if report.valid else "failure"
+
+    errors = report.tasks[0].errors if report.tasks else []
     error_details = [
         {
             "row": getattr(err, "row_number", None),
             "field": getattr(err, "field_name", None),
             "message": err.message,
         }
-        for task in report.tasks
-        for err in task.errors
+        for err in errors
     ]
     error_count = len(error_details)
 
