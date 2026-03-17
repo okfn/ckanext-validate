@@ -21,6 +21,10 @@ def validate(package_id, resource_id):
         pkg_dict = toolkit.get_action("package_show")(
             {}, {"id": package_id}
         )
+    except toolkit.ObjectNotFound:
+        base.abort(404, toolkit._("Package not found"))
+
+    try:
         resource = toolkit.get_action("resource_show")(
             {}, {"id": resource_id}
         )
