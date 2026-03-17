@@ -2,6 +2,7 @@ import json
 import logging
 
 import frictionless
+from frictionless import system
 from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
@@ -31,7 +32,8 @@ def resource_validate(context, data_dict):
             {"format": [toolkit._("Only CSV resources can be validated.")]}
         )
 
-    if resource.get("url_type") == "upload":
+    is_uploaded = resource.get("url_type") == "upload"
+    if is_uploaded:
         upload = uploader.get_resource_uploader(resource)
         file_path = upload.get_path(resource["id"])
         source = "file://" + file_path
@@ -40,7 +42,11 @@ def resource_validate(context, data_dict):
     log.debug("Validating resource %s from %s", resource_id, source)
 
     try:
-        report = frictionless.validate(source)
+        if is_uploaded:
+            with system.use_context(trusted=True):
+                report = frictionless.validate(source)
+        else:
+            report = frictionless.validate(source)
     except Exception as exc:
         log.error("Frictionless raised an exception for resource %s: %s", resource_id, exc)
         patch_data = {
