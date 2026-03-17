@@ -38,7 +38,17 @@ def validate(package_id, resource_id):
             resource = toolkit.get_action("resource_validate")(
                 context, {"id": resource_id}
             )
-            toolkit.h.flash_success(toolkit._("Validation completed."))
+
+            status = resource.get("validation_status")
+            error_count = resource.get("validation_error_count", 0)
+            if status == "success":
+                toolkit.h.flash_success(toolkit._("Validation completed. No errors found."))
+            elif status == "failure":
+                msg = toolkit._("Validation completed. {} errors found.").format(error_count)
+                toolkit.h.flash_error(msg)
+            else:
+                toolkit.h.flash_success(toolkit._("Validation completed."))
+
         except toolkit.ValidationError as e:
             errors = e.error_dict
         except toolkit.NotAuthorized:
