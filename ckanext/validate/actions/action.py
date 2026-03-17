@@ -1,8 +1,7 @@
 import json
 import logging
 
-import frictionless
-from frictionless import system
+from frictionless import system, Resource
 from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
@@ -21,9 +20,7 @@ def resource_validate(context, data_dict):
     :rtype: dict
     """
     resource_id = toolkit.get_or_bust(data_dict, "id")
-
     toolkit.check_access("resource_update", context, {"id": resource_id})
-
     resource = toolkit.get_action("resource_show")(context, {"id": resource_id})
 
     fmt = (resource.get("format") or "").upper()
@@ -35,8 +32,7 @@ def resource_validate(context, data_dict):
     is_uploaded = resource.get("url_type") == "upload"
     if is_uploaded:
         upload = uploader.get_resource_uploader(resource)
-        file_path = upload.get_path(resource["id"])
-        source = "file://" + file_path
+        source = "file://" + upload.get_path(resource["id"])
     else:
         source = resource["url"]
 
@@ -45,27 +41,27 @@ def resource_validate(context, data_dict):
     try:
         if is_uploaded:
             with system.use_context(trusted=True):
-                report = frictionless.validate(source)
+                res = Resource(source, format="csv")
+                report = res.validate()
         else:
-            report = frictionless.validate(source)
+            res = Resource(source, format="csv")
+            report = res.validate()
+
     except Exception as exc:
-        log.exception(
-            "Frictionless raised an exception for resource %s",
-            resource_id,
-        )
+        log.exception("Frictionless raised an exception for resource %s", resource_id)
         raise toolkit.ValidationError(
-            {
-                "frictionless": [
-                    toolkit._(
-                        "An internal error occurred while validating the resource."
-                    )
-                ]
-            }
-        ) from exc
+            {"frictionless": [toolkit._("System error: {0}").format(str(exc))]}
+        )
+
+    log.debug("Frictionless Report: %s", report.to_dict())
 
     status = "success" if report.valid else "failure"
 
-    errors = report.tasks[0].errors if report.tasks else []
+    # Extraemos errores
+    errors = []
+    for task in report.tasks:
+        errors.extend(task.errors)
+
     error_details = [
         {
             "row": getattr(err, "row_number", None),
@@ -74,6 +70,13 @@ def resource_validate(context, data_dict):
         }
         for err in errors
     ]
+
+    if not report.valid and not error_details:
+        error_details.append({
+            "message": toolkit._("Structural validation error"),
+            "code": "structure-error"
+        })
+
     error_count = len(error_details)
 
     patch_data = {
