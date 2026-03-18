@@ -30,6 +30,7 @@ def resource_validate(context, data_dict):
         )
 
     is_uploaded = resource.get("url_type") == "upload"
+    fmt_lower = (resource.get("format") or "").lower()
     if is_uploaded:
         upload = uploader.get_resource_uploader(resource)
         source = "file://" + upload.get_path(resource["id"])
@@ -39,10 +40,10 @@ def resource_validate(context, data_dict):
     try:
         if is_uploaded:
             with system.use_context(trusted=True):
-                res = Resource(source, format="csv")
+                res = Resource(source, format=fmt_lower)
                 report = res.validate()
         else:
-            res = Resource(source, format="csv")
+            res = Resource(source, format=fmt_lower)
             report = res.validate()
 
     except Exception as exc:
@@ -75,15 +76,14 @@ def resource_validate(context, data_dict):
 
     error_count = len(error_details)
 
-    patch_data = {
-        "id": resource_id,
-        "validation_status": status,
-        "validation_error_count": error_count,
-        "validation_errors": json.dumps(error_details),
-    }
-
     updated_resource = toolkit.get_action("resource_patch")(
-        {"ignore_auth": True}, patch_data
+        {"ignore_auth": True},
+        {
+            "id": resource_id,
+            "validation_status": status,
+            "validation_error_count": error_count,
+            "validation_errors": json.dumps(error_details),
+        },
     )
 
     log.info(
