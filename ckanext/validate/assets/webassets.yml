@@ -7,8 +7,8 @@
 #     preload:
 #       - base/main
 
-# validate-css:
-#   filter: cssrewrite
-#   output: ckanext-validate/%(version)s-validate.css
-#   contents:
-#     - css/validate.css
+validate-css:
+  filter: cssrewrite
+  output: ckanext-validate/%(version)s-validate.css
+  contents:
+    - css/validate.css

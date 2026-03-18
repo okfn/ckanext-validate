@@ -1,0 +1,22 @@
+{% ckan_extends %}
+
+{% block resource_actions_inner %}
+  {{ super() }}
+  {% if res.format and res.format|upper == 'CSV' %}
+    <li>
+      <a href="{{ h.url_for('resource_validate.validate', package_id=pkg.name, resource_id=res.id) }}"
+         class="btn btn-default">
+        <i class="fa fa-check-circle"></i>
+        {{ _('Validate') }}
+        {% set status = res.validation_status %}
+        {% if status == 'success' %}
+          <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
+        {% elif status == 'failure' %}
+          <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
+        {% elif status == 'error' %}
+          <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+        {% endif %}
+      </a>
+    </li>
+  {% endif %}
+{% endblock %}
