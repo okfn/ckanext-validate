@@ -39,6 +39,11 @@ To install ckanext-validate:
      sudo service apache2 reload
 
 
+## Usage
+
+For detailed usage instructions, API actions reference and available fields see [docs/model.md](docs/model.md).
+
+
 ## Config settings
 
 None at present
