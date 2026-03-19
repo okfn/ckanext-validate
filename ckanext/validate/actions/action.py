@@ -3,8 +3,11 @@ import logging
 
 from frictionless import system, Resource
 from ckan.lib import uploader
+from ckan.model import Session
 
 import ckan.plugins.toolkit as toolkit
+
+from ckanext.validate.model import Validation
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +40,11 @@ def resource_validate(context, data_dict):
     else:
         source = resource["url"]
 
+    log.info(
+        "Starting validation for resource %s (format=%s, uploaded=%s, source=%s)",
+        resource_id, fmt_lower, is_uploaded, source,
+    )
+
     try:
         if is_uploaded:
             with system.use_context(trusted=True):
@@ -52,9 +60,14 @@ def resource_validate(context, data_dict):
             {"frictionless": [toolkit._("System error: {0}").format(str(exc))]}
         )
 
+    log.info(
+        "Frictionless validation completed for resource %s: valid=%s",
+        resource_id, report.valid,
+    )
+    log.debug("Validation report for resource %s: %s", resource_id, report.to_descriptor())
+
     status = "success" if report.valid else "failure"
 
-    # Extraemos errores
     errors = []
     for task in report.tasks:
         errors.extend(task.errors)
@@ -71,10 +84,21 @@ def resource_validate(context, data_dict):
     if not report.valid and not error_details:
         error_details.append({
             "message": toolkit._("Structural validation error"),
-            "code": "structure-error"
+            "code": "structure-error",
         })
 
     error_count = len(error_details)
+    errors_json = json.dumps(error_details)
+
+    # Persist result in dedicated table
+    validation_record = Validation(
+        resource_id=resource_id,
+        status=status,
+        error_count=error_count,
+        errors=errors_json,
+    )
+    Session.add(validation_record)
+    Session.commit()
 
     updated_resource = toolkit.get_action("resource_patch")(
         {"ignore_auth": True},
@@ -82,15 +106,40 @@ def resource_validate(context, data_dict):
             "id": resource_id,
             "validation_status": status,
             "validation_error_count": error_count,
-            "validation_errors": json.dumps(error_details),
+            "validation_errors": errors_json,
         },
     )
 
     log.info(
         "Resource %s validation finished: status=%s errors=%d",
-        resource_id,
-        status,
-        error_count,
+        resource_id, status, error_count,
     )
 
     return updated_resource
+
+
+def resource_validation_show(context, data_dict):
+    """Return the latest validation result for a resource.
+
+    :param id: the id of the resource
+    :type id: string
+
+    :returns: dict with validation result or raises ObjectNotFound
+    :rtype: dict
+    """
+    resource_id = toolkit.get_or_bust(data_dict, "id")
+    toolkit.check_access("resource_show", context, {"id": resource_id})
+
+    record = (
+        Session.query(Validation)
+        .filter(Validation.resource_id == resource_id)
+        .order_by(Validation.created.desc())
+        .first()
+    )
+
+    if record is None:
+        raise toolkit.ObjectNotFound(
+            toolkit._("No validation found for resource {0}").format(resource_id)
+        )
+
+    return record.as_dict()

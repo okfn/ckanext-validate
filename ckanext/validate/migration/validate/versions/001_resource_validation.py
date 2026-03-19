@@ -5,15 +5,13 @@ Revises:
 Create Date: 2026-03-19
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 revision = "001_resource_validation"
 down_revision = None
 branch_labels = None
 depends_on = None
-
-import datetime
-
-from alembic import op
-import sqlalchemy as sa
 
 
 def upgrade():

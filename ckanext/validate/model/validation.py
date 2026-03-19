@@ -3,10 +3,11 @@ import json
 
 from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UnicodeText
 
-from ckan.model import DeclarativeBase
+from ckan.model.base import ActiveRecordMixin
+from ckan.plugins import toolkit
 
 
-class Validation(DeclarativeBase):
+class Validation(toolkit.BaseModel, ActiveRecordMixin):
     """Stores the result of each Frictionless validation run for a resource."""
 
     __tablename__ = "resource_validation"
