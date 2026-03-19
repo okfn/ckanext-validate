@@ -1,0 +1,39 @@
+import datetime
+import json
+
+from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UnicodeText
+
+from ckan.model import DeclarativeBase
+
+
+class Validation(DeclarativeBase):
+    """Stores the result of each Frictionless validation run for a resource."""
+
+    __tablename__ = "resource_validation"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    resource_id = Column(String(36), nullable=False, index=True)
+    status = Column(UnicodeText, nullable=False)
+    error_count = Column(Integer, nullable=False, default=0)
+    errors = Column(Text, nullable=False, default="[]")
+    created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
+
+    __table_args__ = (
+        Index("ix_resource_validation_resource_id_created", "resource_id", "created"),
+    )
+
+    def __repr__(self):
+        return (
+            f"<Validation resource_id={self.resource_id!r} "
+            f"status={self.status!r} errors={self.error_count}>"
+        )
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "resource_id": self.resource_id,
+            "status": self.status,
+            "error_count": self.error_count,
+            "errors": json.loads(self.errors) if self.errors else [],
+            "created": self.created.isoformat() if self.created else None,
+        }
