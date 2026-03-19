@@ -4,6 +4,7 @@ import json
 from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UnicodeText
 
 from ckan.model.base import ActiveRecordMixin
+from ckan.model import Session
 from ckan.plugins import toolkit
 
 
@@ -27,6 +28,26 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
         return (
             f"<Validation resource_id={self.resource_id!r} "
             f"status={self.status!r} errors={self.error_count}>"
+        )
+
+    @classmethod
+    def create(cls, resource_id, status, error_count, errors):
+        record = cls(
+            resource_id=resource_id,
+            status=status,
+            error_count=error_count,
+            errors=errors,
+        )
+        record.save()
+        return record
+
+    @classmethod
+    def get_latest(cls, resource_id):
+        return (
+            Session.query(cls)
+            .filter(cls.resource_id == resource_id)
+            .order_by(cls.created.desc())
+            .first()
         )
 
     def as_dict(self):

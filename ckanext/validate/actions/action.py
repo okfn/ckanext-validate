@@ -3,7 +3,6 @@ import logging
 
 from frictionless import system, Resource
 from ckan.lib import uploader
-from ckan.model import Session
 
 import ckan.plugins.toolkit as toolkit
 
@@ -91,14 +90,12 @@ def resource_validate(context, data_dict):
     errors_json = json.dumps(error_details)
 
     # Persist result in dedicated table
-    validation_record = Validation(
+    Validation.create(
         resource_id=resource_id,
         status=status,
         error_count=error_count,
         errors=errors_json,
     )
-    Session.add(validation_record)
-    Session.commit()
 
     updated_resource = toolkit.get_action("resource_patch")(
         {"ignore_auth": True},
@@ -130,12 +127,7 @@ def resource_validation_show(context, data_dict):
     resource_id = toolkit.get_or_bust(data_dict, "id")
     toolkit.check_access("resource_show", context, {"id": resource_id})
 
-    record = (
-        Session.query(Validation)
-        .filter(Validation.resource_id == resource_id)
-        .order_by(Validation.created.desc())
-        .first()
-    )
+    record = Validation.get_latest(resource_id)
 
     if record is None:
         raise toolkit.ObjectNotFound(
