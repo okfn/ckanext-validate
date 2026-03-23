@@ -30,16 +30,6 @@ def upgrade():
         ),
     )
     op.create_index(
-        "ix_resource_validation_resource_id",
-        "resource_validation",
-        ["resource_id"],
-    )
-    op.create_index(
-        "ix_resource_validation_created",
-        "resource_validation",
-        ["created"],
-    )
-    op.create_index(
         "ix_resource_validation_resource_id_created",
         "resource_validation",
         ["resource_id", "created"],
@@ -48,6 +38,4 @@ def upgrade():
 
 def downgrade():
     op.drop_index("ix_resource_validation_resource_id_created", "resource_validation")
-    op.drop_index("ix_resource_validation_created", "resource_validation")
-    op.drop_index("ix_resource_validation_resource_id", "resource_validation")
     op.drop_table("resource_validation")

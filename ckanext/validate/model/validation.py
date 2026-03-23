@@ -13,11 +13,11 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
     __tablename__ = "resource_validation"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    resource_id = Column(UnicodeText, nullable=False, index=True)
+    resource_id = Column(UnicodeText, nullable=False)
     status = Column(UnicodeText, nullable=False)
     error_count = Column(Integer, nullable=False, default=0)
     errors = Column(JSON, nullable=False, default=list)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
 
     __table_args__ = (
         Index("ix_resource_validation_resource_id_created", "resource_id", "created"),
