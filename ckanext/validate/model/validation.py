@@ -1,7 +1,6 @@
 import datetime
-import json
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UnicodeText
+from sqlalchemy import Column, DateTime, Index, Integer, JSON, String, UnicodeText
 
 from ckan.model.base import ActiveRecordMixin
 from ckan.model import Session
@@ -17,7 +16,7 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
     resource_id = Column(String(36), nullable=False, index=True)
     status = Column(UnicodeText, nullable=False)
     error_count = Column(Integer, nullable=False, default=0)
-    errors = Column(Text, nullable=False, default="[]")
+    errors = Column(JSON, nullable=False, default=list)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
 
     __table_args__ = (
@@ -56,6 +55,6 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
             "resource_id": self.resource_id,
             "status": self.status,
             "error_count": self.error_count,
-            "errors": json.loads(self.errors) if self.errors else [],
+            "errors": self.errors if self.errors is not None else [],
             "created": self.created.isoformat() if self.created else None,
         }

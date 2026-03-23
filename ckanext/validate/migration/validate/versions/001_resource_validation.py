@@ -21,7 +21,7 @@ def upgrade():
         sa.Column("resource_id", sa.String(36), nullable=False),
         sa.Column("status", sa.UnicodeText, nullable=False),
         sa.Column("error_count", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("errors", sa.Text, nullable=False, server_default="[]"),
+        sa.Column("errors", sa.JSON, nullable=False, server_default=sa.text("'[]'")),
         sa.Column(
             "created",
             sa.DateTime,

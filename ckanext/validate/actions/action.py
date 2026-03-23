@@ -87,14 +87,13 @@ def resource_validate(context, data_dict):
         })
 
     error_count = len(error_details)
-    errors_json = json.dumps(error_details)
 
     # Persist result in dedicated table
     Validation.create(
         resource_id=resource_id,
         status=status,
         error_count=error_count,
-        errors=errors_json,
+        errors=error_details,
     )
 
     updated_resource = toolkit.get_action("resource_patch")(
@@ -103,7 +102,7 @@ def resource_validate(context, data_dict):
             "id": resource_id,
             "validation_status": status,
             "validation_error_count": error_count,
-            "validation_errors": errors_json,
+            "validation_errors": json.dumps(error_details),
         },
     )
 
