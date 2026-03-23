@@ -14,9 +14,11 @@ def resource_validate(context, data_dict):
     resource = _get_resource(resource_id)
     if not resource:
         return {"success": False, "msg": toolkit._("Resource not found")}
-    return toolkit.check_access(
-        "resource_update", context, {"id": resource_id}
-    ) or {"success": True}
+    try:
+        toolkit.check_access("resource_update", context, {"id": resource_id})
+    except toolkit.NotAuthorized:
+        return {"success": False, "msg": toolkit._("Not authorized to validate this resource")}
+    return {"success": True}
 
 
 def resource_validation_show(context, data_dict):
@@ -27,4 +29,8 @@ def resource_validation_show(context, data_dict):
     resource = _get_resource(resource_id)
     if not resource:
         return {"success": False, "msg": toolkit._("Resource not found")}
+    try:
+        toolkit.check_access("resource_show", context, {"id": resource_id})
+    except toolkit.NotAuthorized:
+        return {"success": False, "msg": toolkit._("Not authorized to view this resource")}
     return {"success": True}
