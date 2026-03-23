@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, DateTime, Index, Integer, JSON, String, UnicodeText
+from sqlalchemy import Column, DateTime, Index, Integer, JSON, UnicodeText
 
 from ckan.model.base import ActiveRecordMixin
 from ckan.model import Session
@@ -13,7 +13,7 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
     __tablename__ = "resource_validation"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    resource_id = Column(String(36), nullable=False, index=True)
+    resource_id = Column(UnicodeText, nullable=False, index=True)
     status = Column(UnicodeText, nullable=False)
     error_count = Column(Integer, nullable=False, default=0)
     errors = Column(JSON, nullable=False, default=list)
