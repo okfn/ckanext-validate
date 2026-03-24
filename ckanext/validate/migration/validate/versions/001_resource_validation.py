@@ -7,6 +7,8 @@ Create Date: 2026-03-19
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+from ckan.model.types import JsonDictType
 
 revision = "001_resource_validation"
 down_revision = None
@@ -21,7 +23,12 @@ def upgrade():
         sa.Column("resource_id", sa.UnicodeText, nullable=False),
         sa.Column("status", sa.UnicodeText, nullable=False),
         sa.Column("error_count", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("errors", sa.JSON, nullable=False, server_default=sa.text("'[]'")),
+        sa.Column(
+            "errors", 
+            JsonDictType().with_variant(postgresql.JSON, "postgresql"), 
+            nullable=False, 
+            server_default=sa.text("'[]'::json")
+        ),
         sa.Column(
             "created",
             sa.DateTime,

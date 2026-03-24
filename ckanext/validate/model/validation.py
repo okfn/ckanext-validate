@@ -1,7 +1,9 @@
 import datetime
 
-from sqlalchemy import Column, DateTime, Index, Integer, JSON, UnicodeText
+from sqlalchemy import Column, DateTime, Index, Integer, UnicodeText
 
+from sqlalchemy.dialects import postgresql
+from ckan.model.types import JsonDictType
 from ckan.model.base import ActiveRecordMixin
 from ckan.model import Session
 from ckan.plugins import toolkit
@@ -16,7 +18,11 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
     resource_id = Column(UnicodeText, nullable=False)
     status = Column(UnicodeText, nullable=False)
     error_count = Column(Integer, nullable=False, default=0)
-    errors = Column(JSON, nullable=False, default=list)
+    errors = Column(
+        JsonDictType().with_variant(postgresql.JSON, "postgresql"), 
+        nullable=False, 
+        default=list
+    )
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
 
     __table_args__ = (
