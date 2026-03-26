@@ -1,4 +1,3 @@
-import pytest
 from ckan.plugins import toolkit
 
 from ckanext.validate.auth import validation as validate_auth
