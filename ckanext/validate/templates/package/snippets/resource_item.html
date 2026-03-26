@@ -2,12 +2,14 @@
 
 {% block resource_item_title %}
   {{ super() }}
-  {% set status = res.validation_status %}
-  {% if status == 'success' %}
-    <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
-  {% elif status == 'failure' %}
-    <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-  {% elif status == 'error' %}
-    <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+  {% if h.check_access('sysadmin') or h.check_access('package_update', {'id': res.package_id}) %}
+    {% set status = res.validation_status %}
+    {% if status == 'success' %}
+      <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
+    {% elif status == 'failure' %}
+      <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
+    {% elif status == 'error' %}
+      <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+    {% endif %}
   {% endif %}
 {% endblock %}

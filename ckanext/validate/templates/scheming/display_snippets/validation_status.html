@@ -1,12 +1,15 @@
-{% if data[field.field_name] %}
-  {% set status = data[field.field_name] %}
-  {% if status == 'success' %}
-    <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
-  {% elif status == 'failure' %}
-    <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-  {% elif status == 'error' %}
-    <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+{# Mostrar badges solo a usuarios logueados y que sean sysadmin o admin #}
+{% if h.check_access('sysadmin') or h.check_access('package_update', {'id': data['id']}) %}
+  {% if data[field.field_name] %}
+    {% set status = data[field.field_name] %}
+    {% if status == 'success' %}
+      <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
+    {% elif status == 'failure' %}
+      <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
+    {% elif status == 'error' %}
+      <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+    {% endif %}
+  {% else %}
+    <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
   {% endif %}
-{% else %}
-  <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
 {% endif %}
