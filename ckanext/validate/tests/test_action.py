@@ -225,3 +225,91 @@ def test_resource_validate_with_real_frictionless_fixture_file(monkeypatch, fake
     assert result["validation_error_count"] >= 1
     assert created["status"] == "failure"
     assert created["error_count"] >= 1
+
+
+def test_resource_validate_with_bike_errors_fixture(monkeypatch, fake_actions):
+    """
+    Usa el archivo bike-errors.csv y verifica el error esperado:
+    Row 22: Row at position "22" is completely blank
+    """
+    resource = {
+        "id": "res-bike-errors",
+        "format": "CSV",
+        "url_type": "",
+        "url": (FIXTURES_DIR.parent / "files_test" / "bike-errors.csv").resolve().as_uri(),
+    }
+    fake_actions(resource)
+    created = {}
+
+    monkeypatch.setattr(
+        validate_action.Validation,
+        "create",
+        lambda resource_id, status, error_count, errors: created.update({
+            "resource_id": resource_id,
+            "status": status,
+            "error_count": error_count,
+            "errors": errors,
+        }),
+    )
+
+    result = validate_action.resource_validate({}, {"id": resource["id"]})
+
+    assert result["validation_status"] == "failure"
+    assert result["validation_error_count"] >= 1
+    assert created["status"] == "failure"
+    assert created["error_count"] >= 1
+    # Buscar el error específico de fila 22 completamente vacía
+    blank_row_error = next((err for err in created["errors"]
+                            if str(err.get("row", "")) == "22" and "completely blank" in err.get("message", "")), None)
+    assert blank_row_error is not None, f"No se encontró el error esperado en fila 22: {created['errors']}"
+
+
+def test_resource_validate_with_so_wrong_fixture(monkeypatch, fake_actions):
+    """
+    Usa el archivo so-wrong.csv y verifica los errores esperados:
+    - Header en blanco
+    - Fila 4: missing cell en column_3
+    - Fila 5: completamente vacía
+    - Fila 6: missing cell en field2 y column_3
+    """
+    resource = {
+        "id": "res-so-wrong",
+        "format": "CSV",
+        "url_type": "",
+        "url": (FIXTURES_DIR.parent / "files_test" / "so-wrong.csv").resolve().as_uri(),
+    }
+    fake_actions(resource)
+    created = {}
+
+    monkeypatch.setattr(
+        validate_action.Validation,
+        "create",
+        lambda resource_id, status, error_count, errors: created.update({
+            "resource_id": resource_id,
+            "status": status,
+            "error_count": error_count,
+            "errors": errors,
+        }),
+    )
+
+    result = validate_action.resource_validate({}, {"id": resource["id"]})
+
+    assert result["validation_status"] == "failure"
+    assert result["validation_error_count"] == 5
+    assert created["status"] == "failure"
+    assert created["error_count"] == 5
+    # Verificar errores específicos
+    header_blank = any("header" in err.get("message", "") or "Label in the header" in err.get("message", "")
+                       for err in created["errors"])
+    row4_col3 = any(str(err.get("row", "")) == "4" and "column_3" in err.get("field", "")
+                    and "missing cell" in err.get("message", "") for err in created["errors"])
+    row5_blank = any(str(err.get("row", "")) == "5" and "completely blank" in err.get("message", "") for err in created["errors"])
+    row6_field2 = any(str(err.get("row", "")) == "6" and "field2" in err.get("field", "")
+                      and "missing cell" in err.get("message", "") for err in created["errors"])
+    row6_col3 = any(str(err.get("row", "")) == "6" and "column_3" in err.get("field", "")
+                    and "missing cell" in err.get("message", "") for err in created["errors"])
+    assert header_blank, "No se encontró el error de header en blanco"
+    assert row4_col3, "No se encontró el error de fila 4, column_3 missing cell"
+    assert row5_blank, "No se encontró el error de fila 5 completamente vacía"
+    assert row6_field2, "No se encontró el error de fila 6, field2 missing cell"
+    assert row6_col3, "No se encontró el error de fila 6, column_3 missing cell"
