@@ -1,6 +1,6 @@
-
 import pytest
 from ckanext.validate.actions import action as validate_action
+import ckan.plugins.toolkit as t
 
 
 class DummyUploader:
@@ -75,3 +75,10 @@ def clean_db(reset_db, migrate_db_for):
     """Clean and initialize the database."""
     reset_db()
     migrate_db_for("validate")
+
+
+def can_show_validation_badge(package_id):
+    return (
+        t.check_access("sysadmin", {}, {})
+        or t.check_access("package_update", {}, {"id": package_id})
+    )
