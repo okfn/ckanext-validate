@@ -17,8 +17,11 @@
     <div class="module-content">
       <h3>{{ _('Current Status') }}</h3>
       {% set status = h.get_resource_validation_state(res) %}
+      {% if status == 'pending' %}
+        <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+        <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
 
-      {% if status == 'success' %}
+      {% elif status == 'success' %}
         <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
 
       {% elif status == 'failure' %}
@@ -48,12 +51,8 @@
         {% endif %}
 
       {% elif status == 'error' %}
-        <span class="validate-badge validate-badge--error">{{ _('Validation Error') }}</span>
+        <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
         <p class="mt-2">{{ _('An error occurred while running the validator.') }}</p>
-
-      {% elif status == 'pending' %}
-        <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
-        <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
 
       {% else %}
         <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
