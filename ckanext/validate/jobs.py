@@ -16,6 +16,7 @@ https://docs.ckan.org/en/2.11/maintaining/cli.html
 
 """
 
+
 def run_resource_validation_job(resource_id):
     """
     Step 3 only:
