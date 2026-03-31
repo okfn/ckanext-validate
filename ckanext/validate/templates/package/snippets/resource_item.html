@@ -4,7 +4,9 @@
   {{ super() }}
   {% if h.check_access('sysadmin') or h.check_access('package_update', {'id': res.package_id}) %}
     {% set status = res.validation_status %}
-    {% if status == 'success' %}
+    {% if status == 'pending' %}
+      <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+    {% elif status == 'success' %}
       <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
     {% elif status == 'failure' %}
       <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
