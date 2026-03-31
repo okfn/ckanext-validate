@@ -1,5 +1,7 @@
+
 import logging
 import ckan.plugins.toolkit as toolkit
+from ckanext.validate import jobs
 
 log = logging.getLogger(__name__)
 
@@ -42,19 +44,27 @@ def mark_resource_as_pending(resource_id):
     )
 
 
+def enqueue_resource_validation_job(resource_id):
+    return toolkit.enqueue_job(
+        jobs.run_resource_validation_job,
+        args=[resource_id],
+        title=f"Validate resource {resource_id}",
+        queue="validate",
+    )
+
+
 def handle_resource_change(context, resource_dict, operation):
     """
-    Step 2 only:
-    mark eligible CSV resources as pending right after create/update.
+    Step 3 only:
+    mark eligible CSV resources as pending and enqueue a background job.
 
     This function intentionally does not:
-    - enqueue jobs
     - run validation
+    - patch final validation results
     - modify the UI
     """
     context = context or {}
 
-    # Avoid re-entering the hook when our own internal resource_patch runs
     if context.get(_INTERNAL_PENDING_PATCH_FLAG):
         log.debug(
             "Skipping pending patch hook re-entry for resource %s on %s",
@@ -65,7 +75,7 @@ def handle_resource_change(context, resource_dict, operation):
 
     if not is_resource_eligible_for_auto_validation(resource_dict):
         log.debug(
-            "Skipping pending status for resource %s on %s "
+            "Skipping auto-validation flow for resource %s on %s "
             "(format=%r, state=%r, url_type=%r)",
             resource_dict.get("id"),
             operation,
@@ -75,16 +85,15 @@ def handle_resource_change(context, resource_dict, operation):
         )
         return False
 
-    mark_resource_as_pending(resource_dict["id"])
+    resource_id = resource_dict["id"]
+
+    mark_resource_as_pending(resource_id)
+    enqueue_resource_validation_job(resource_id)
 
     log.info(
-        "Resource %s marked as pending after resource_%s "
-        "(format=%s, url_type=%s, url=%s)",
-        resource_dict.get("id"),
+        "Resource %s marked as pending and validation job enqueued after resource_%s",
+        resource_id,
         operation,
-        resource_dict.get("format"),
-        resource_dict.get("url_type"),
-        resource_dict.get("url"),
     )
 
     return True
