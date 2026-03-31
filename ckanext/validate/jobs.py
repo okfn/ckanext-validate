@@ -1,4 +1,5 @@
 import logging
+import ckan.plugins.toolkit as toolkit
 
 log = logging.getLogger(__name__)
 
@@ -19,12 +20,15 @@ https://docs.ckan.org/en/2.11/maintaining/cli.html
 
 def run_resource_validation_job(resource_id):
     """
-    Step 3 only:
-    background job entrypoint for resource validation.
-
-    The actual validation call will be added in step 4.
+    Step 4 only:
+    execute validation from the background job by reusing the existing
+    resource_validate action.
     """
-    log.info(
-        "Validation job dequeued for resource %s",
-        resource_id,
+    log.info("Starting background validation for resource %s", resource_id)
+
+    toolkit.get_action("resource_validate")(
+        {"ignore_auth": True},
+        {"id": resource_id},
     )
+
+    log.info("Finished background validation for resource %s", resource_id)
