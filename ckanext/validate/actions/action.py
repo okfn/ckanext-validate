@@ -7,7 +7,10 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.model import Validation
 
+
 log = logging.getLogger(__name__)
+
+_VALIDATE_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
 
 
 def resource_validate(context, data_dict):

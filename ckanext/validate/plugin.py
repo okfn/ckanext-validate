@@ -45,6 +45,9 @@ class ValidatePlugin(plugins.SingletonPlugin):
         return [validate_blueprint.resource_validate_blueprint]
 
     # IResourceController
+        # Added to hook into resource create/update events so CSV resources can be
+        # automatically marked as pending and sent to background validation without
+        # modifying CKAN core actions.
 
     def after_resource_update(self, context, resource):
         resource_hooks.handle_resource_change(resource)

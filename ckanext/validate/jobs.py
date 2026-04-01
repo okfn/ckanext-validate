@@ -6,6 +6,8 @@ from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 log = logging.getLogger(__name__)
 
+_VALIDATE_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
+
 
 """
 To process the background jobs queue, use the following command:
@@ -23,7 +25,17 @@ def run_resource_validation_job(resource_id):
     execute validation in the background job and ensure the resource
     is updated with a final result, including the error case.
     """
-    log.info("Starting background validation for resource %s", resource_id)
+    log.info("run_resource_validation_job start resource_id=%s username=%r", resource_id, username)
+
+    action_context = {"ignore_auth": True}
+    if username:
+        action_context["user"] = username
+
+    log.info(
+        "Calling resource_validate for resource_id=%s with context=%r",
+        resource_id,
+        action_context,
+    )
 
     site_user = toolkit.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"ignore_auth": True, "user": site_user["name"]}
