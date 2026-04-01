@@ -8,7 +8,10 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.model import Validation
 
+
 log = logging.getLogger(__name__)
+
+_VALIDATE_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
 
 
 def resource_validate(context, data_dict):
@@ -96,8 +99,21 @@ def resource_validate(context, data_dict):
         errors=error_details,
     )
 
+    patch_context = {
+        "ignore_auth": True,
+        _VALIDATE_INTERNAL_PATCH_FLAG: True,
+    }
+    if context.get("user"):
+        patch_context["user"] = context["user"]
+
+    log.info(
+        "Calling resource_patch for resource_id=%s patch_context=%r",
+        resource_id,
+        patch_context,
+    )
+
     updated_resource = toolkit.get_action("resource_patch")(
-        {"ignore_auth": True},
+        patch_context,
         {
             "id": resource_id,
             "validation_status": status,
