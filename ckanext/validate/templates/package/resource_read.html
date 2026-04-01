@@ -10,7 +10,9 @@
           <i class="fa fa-check-circle"></i>
           {{ _('Validate') }}
           {% set status = res.validation_status %}
-          {% if status == 'success' %}
+          {% if status == 'pending' %}
+            <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+          {% elif status == 'success' %}
             <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
           {% elif status == 'failure' %}
             <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
