@@ -29,12 +29,15 @@ def is_resource_eligible_for_auto_validation(resource_dict):
     return True
 
 
-def mark_resource_as_pending(resource_id):
-    log.info("Marking resource %s as pending", resource_id)
+def mark_resource_as_pending(resource_id, username=None):
     patch_context = {
         "ignore_auth": True,
         _VALIDATE_INTERNAL_PATCH_FLAG: True,
     }
+    if username:
+        patch_context["user"] = username
+
+    log.info("Marking resource %s as pending", resource_id)
     toolkit.get_action("resource_patch")(
         patch_context,
         {
@@ -97,10 +100,7 @@ def handle_resource_change(context, resource_dict, operation):
     username = context.get("user")
     resource_id = resource_dict["id"]
 
-    log.info("Marking resource %s as pending", resource_id)
-    mark_resource_as_pending(resource_id)
-
-    log.info("Enqueuing validation job for resource %s user=%r", resource_id, username)
+    mark_resource_as_pending(resource_id, username)
     enqueue_resource_validation_job(resource_id, username)
 
     log.info(
