@@ -8,6 +8,9 @@ class DummyUploader:
     def get_path(self, resource_id):
         return self.path
 
+    def upload(self, id, max_size):
+        pass
+
 
 class DummyReport:
     def __init__(self, valid, tasks=None):
@@ -27,7 +30,7 @@ class DummyResource:
         return DummyReport(valid=True)
 
 
-@pytest.fixture
-def clean_db(reset_db, migrate_db_for):
+@pytest.fixture(autouse=True)
+def validate_setup(with_plugins, reset_db, migrate_db_for):
     reset_db()
     migrate_db_for("validate")
