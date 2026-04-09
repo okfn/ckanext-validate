@@ -49,6 +49,7 @@ To temporary patch the CKAN configuration for the duration of a test you can use
 """
 import pytest
 from ckan.plugins import plugin_loaded
+from ckan.plugins import toolkit as tk
 
 from ckanext.validate import resource_hooks
 from ckanext.validate.blueprints import resource as validate_resource
@@ -138,3 +139,48 @@ def test_plugin_delete_hooks_are_noops():
 
     assert plugin.before_resource_delete({}, {"id": "res-6"}, [{"id": "res-6"}]) is None
     assert plugin.after_resource_delete({}, [{"id": "res-6"}]) is None
+
+
+def test_plugin_before_resource_create_delegates_to_strict_validation(monkeypatch):
+    captured = {}
+
+    def fake_validate_strict(data_dict):
+        captured["data_dict"] = data_dict
+
+    monkeypatch.setattr(resource_hooks, "validate_csv_upload_strict", fake_validate_strict)
+
+    plugin = ValidatePlugin()
+    resource = {"id": "res-7", "format": "CSV"}
+    result = plugin.before_resource_create({}, resource)
+
+    assert result == resource
+    assert captured["data_dict"] is resource
+
+
+def test_plugin_before_resource_update_delegates_to_strict_validation(monkeypatch):
+    captured = {}
+
+    def fake_validate_strict(data_dict):
+        captured["data_dict"] = data_dict
+
+    monkeypatch.setattr(resource_hooks, "validate_csv_upload_strict", fake_validate_strict)
+
+    plugin = ValidatePlugin()
+    current = {"id": "res-8"}
+    resource = {"id": "res-8", "format": "CSV"}
+    result = plugin.before_resource_update({}, current, resource)
+
+    assert result == resource
+    assert captured["data_dict"] is resource
+
+
+def test_plugin_before_resource_create_propagates_validation_error(monkeypatch):
+
+    def raise_error(data_dict):
+        raise tk.ValidationError({"upload": ["Type error in row 2"]})
+
+    monkeypatch.setattr(resource_hooks, "validate_csv_upload_strict", raise_error)
+
+    plugin = ValidatePlugin()
+    with pytest.raises(tk.ValidationError):
+        plugin.before_resource_create({}, {"format": "CSV", "upload": object()})

@@ -1,7 +1,30 @@
+import io
+from pathlib import Path
+
+import pytest
+from ckan.plugins import toolkit
+
 from ckanext.validate import jobs
 from ckanext.validate import resource_hooks
 
 _INTERNAL_PATCH_FLAG = "_validate_internal_patch"
+
+FIXTURES_DIR = Path(__file__).parent / "files_test"
+
+
+class FakeUpload:
+    """Minimal file-like upload object for testing strict validation."""
+
+    def __init__(self, content):
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+        self._buffer = io.BytesIO(content)
+
+    def read(self):
+        return self._buffer.read()
+
+    def seek(self, pos):
+        self._buffer.seek(pos)
 
 
 def test_mark_resource_as_pending_uses_internal_flag_and_user(monkeypatch):
@@ -158,3 +181,119 @@ def test_handle_resource_change_skips_non_csv(monkeypatch):
 
     assert result is False
     assert called == {"pending": False, "enqueue": False}
+
+
+# ---------------------------------------------------------------------------
+# is_fail_on_invalid_upload_enabled
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.ckan_config("ckanext.validate.fail_on_invalid_upload", "false")
+def test_is_fail_on_invalid_upload_enabled_returns_false_by_default():
+    assert resource_hooks.is_fail_on_invalid_upload_enabled() is False
+
+
+@pytest.mark.ckan_config("ckanext.validate.fail_on_invalid_upload", "true")
+def test_is_fail_on_invalid_upload_enabled_returns_true_when_configured():
+    assert resource_hooks.is_fail_on_invalid_upload_enabled() is True
+
+
+@pytest.mark.ckan_config("ckanext.validate.fail_on_invalid_upload", "false")
+def test_is_fail_on_invalid_upload_enabled_returns_false_when_configured():
+    assert resource_hooks.is_fail_on_invalid_upload_enabled() is False
+
+
+# ---------------------------------------------------------------------------
+# validate_csv_upload_strict — skip conditions (strict mode disabled)
+# ---------------------------------------------------------------------------
+
+
+def test_validate_csv_upload_strict_skips_when_disabled(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: False)
+    data_dict = {"format": "CSV", "upload": FakeUpload("id,name\n1,Alice\n")}
+    # Must not raise
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+def test_validate_csv_upload_strict_skips_non_csv(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    data_dict = {"format": "XLSX", "upload": FakeUpload("some data")}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+def test_validate_csv_upload_strict_skips_when_no_upload_key(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    data_dict = {"format": "CSV"}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+def test_validate_csv_upload_strict_skips_url_string_upload(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    data_dict = {"format": "CSV", "upload": "https://example.com/data.csv"}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+def test_validate_csv_upload_strict_skips_empty_content(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    data_dict = {"format": "CSV", "upload": FakeUpload(b"")}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+# ---------------------------------------------------------------------------
+# validate_csv_upload_strict — strict mode enabled, valid CSV
+# ---------------------------------------------------------------------------
+
+
+def test_validate_csv_upload_strict_valid_csv_does_not_raise(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    content = (FIXTURES_DIR / "valid.csv").read_bytes()
+    data_dict = {"format": "CSV", "upload": FakeUpload(content)}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+
+
+def test_validate_csv_upload_strict_resets_upload_position_after_valid(monkeypatch):
+    """Upload must be seeked back to 0 so CKAN can still read it for the actual save."""
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    content = (FIXTURES_DIR / "valid.csv").read_bytes()
+    upload = FakeUpload(content)
+    data_dict = {"format": "CSV", "upload": upload}
+    resource_hooks.validate_csv_upload_strict(data_dict)
+    assert upload.read() == content
+
+
+# ---------------------------------------------------------------------------
+# validate_csv_upload_strict — strict mode enabled, invalid CSV
+# ---------------------------------------------------------------------------
+
+
+def test_validate_csv_upload_strict_invalid_csv_raises_validation_error(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    content = (FIXTURES_DIR / "bike-errors.csv").read_bytes()
+    data_dict = {"format": "CSV", "upload": FakeUpload(content)}
+    with pytest.raises(toolkit.ValidationError) as exc:
+        resource_hooks.validate_csv_upload_strict(data_dict)
+    assert "upload" in exc.value.error_dict
+    assert exc.value.error_dict["upload"]
+
+
+def test_validate_csv_upload_strict_error_messages_are_strings(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+    content = (FIXTURES_DIR / "bike-errors.csv").read_bytes()
+    data_dict = {"format": "CSV", "upload": FakeUpload(content)}
+    with pytest.raises(toolkit.ValidationError) as exc:
+        resource_hooks.validate_csv_upload_strict(data_dict)
+    for msg in exc.value.error_dict["upload"]:
+        assert isinstance(msg, str)
+
+
+def test_validate_csv_upload_strict_frictionless_exception_raises_validation_error(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "is_fail_on_invalid_upload_enabled", lambda: True)
+
+    def explode(source, format):
+        raise RuntimeError("frictionless crashed")
+
+    monkeypatch.setattr(resource_hooks, "FrictionlessResource", explode)
+    data_dict = {"format": "CSV", "upload": FakeUpload("id,name\n1,Alice\n")}
+    with pytest.raises(toolkit.ValidationError) as exc:
+        resource_hooks.validate_csv_upload_strict(data_dict)
+    assert "upload" in exc.value.error_dict
