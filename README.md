@@ -131,13 +131,39 @@ Raises `ObjectNotFound` (HTTP 404) if no validation has been run for the resourc
 
 ## Config settings
 
-None at present
+### `ckanext.validate.fail_on_invalid_upload`
 
-**TODO:** Document any optional config settings here. For example:
+Controls whether CSV files are validated **synchronously** during resource
+create and update.  When enabled, invalid files are rejected before being
+saved, and the user receives a `ValidationError` with the details.
 
-	# The minimum number of hours to wait before re-checking a resource
-	# (optional, default: 24).
-	ckanext.validate.some_setting = some_default_value
+| | |
+|---|---|
+| **Type** | boolean |
+| **Default** | `false` |
+
+```ini
+# Reject invalid CSV files on upload (optional, default: false).
+ckanext.validate.fail_on_invalid_upload = false
+```
+
+**When `true`:**
+
+* Uploaded CSV files are validated with Frictionless during
+  `resource_create` and `resource_update`.
+* If the file is invalid, a `ValidationError` is raised and the resource is
+  **not** saved.
+* The user receives a clear message listing the validation errors.
+* Only applies to file uploads — URL-linked resources and metadata-only
+  updates are unaffected.
+
+**When `false` (default):**
+
+* The existing behaviour is preserved: uploads are always accepted and
+  validated asynchronously in the background via the job queue.
+
+> **Note:** the default is `false` to preserve backwards compatibility.
+> Enable this option only when your instance requires a strict upload policy.
 
 
 ## Developer installation
