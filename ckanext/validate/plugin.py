@@ -65,9 +65,11 @@ class ValidatePlugin(plugins.SingletonPlugin):
         return resource_dict
 
     def before_resource_create(self, context, resource):
+        resource_hooks.validate_csv_upload_strict(resource)
         return resource
 
     def before_resource_update(self, context, current, resource):
+        resource_hooks.validate_csv_upload_strict(resource)
         return resource
 
     def before_resource_delete(self, context, resource, resources):
