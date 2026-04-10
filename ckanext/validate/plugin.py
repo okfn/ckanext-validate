@@ -44,6 +44,21 @@ class ValidatePlugin(plugins.SingletonPlugin):
 
     # IResourceController
 
+    def before_resource_create(self, context, resource):
+        pass
+
+    def before_resource_update(self, context, current, resource):
+        pass
+
+    def before_resource_delete(self, context, resource, resources):
+        pass
+
+    def after_resource_delete(self, context, resources):
+        pass
+
+    def before_resource_show(self, resource_dict):
+        pass
+
     def after_resource_create(self, context, resource):
         resource_hooks.handle_resource_change(
             context=context,
