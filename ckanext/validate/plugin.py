@@ -4,6 +4,7 @@ import ckan.plugins.toolkit as toolkit
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.blueprints import resource as validate_blueprint
+from ckanext.validate import resource_hooks
 
 
 class ValidatePlugin(plugins.SingletonPlugin):
@@ -11,6 +12,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
+    plugins.implements(plugins.IResourceController)
 
     # IConfigurer
 
@@ -39,3 +41,19 @@ class ValidatePlugin(plugins.SingletonPlugin):
 
     def get_blueprint(self):
         return [validate_blueprint.resource_validate_blueprint]
+
+    # IResourceController
+
+    def after_resource_create(self, context, resource):
+        resource_hooks.handle_resource_change(
+            context=context,
+            resource_dict=resource,
+            operation="create",
+        )
+
+    def after_resource_update(self, context, resource):
+        resource_hooks.handle_resource_change(
+            context=context,
+            resource_dict=resource,
+            operation="update",
+        )
