@@ -4,13 +4,9 @@ log = logging.getLogger(__name__)
 
 
 """
-Con esta comando, para procesar la cola de validación usar:
+To process the background jobs queue, use the following command:
 
-ckan -c /etc/ckan/default/ckan.ini jobs worker validate
-
-Y si querés escuchar default y validate a la vez:
-
-ckan -c /etc/ckan/default/ckan.ini jobs worker default validate
+ckan -c /etc/ckan/default/ckan.ini jobs worker
 
 https://docs.ckan.org/en/2.11/maintaining/cli.html
 

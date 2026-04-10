@@ -49,7 +49,6 @@ def enqueue_resource_validation_job(resource_id):
         jobs.run_resource_validation_job,
         args=[resource_id],
         title=f"Validate resource {resource_id}",
-        queue="validate",
     )
 
 
