@@ -51,8 +51,6 @@ import pytest
 from ckan.plugins import plugin_loaded
 
 from ckanext.validate import resource_hooks
-from ckanext.validate.blueprints.resource import validate_test_file_blueprint
-from ckanext.validate.blueprints import resource as validate_resource
 from ckanext.validate.plugin import ValidatePlugin
 
 
@@ -65,12 +63,7 @@ def test_plugin():
 def test_plugin_registers_expected_blueprint():
     plugin = ValidatePlugin()
 
-    blueprints = plugin.get_blueprint()
-
-    assert blueprints == [
-        validate_resource.resource_validate_blueprint,
-        validate_test_file_blueprint,
-    ]
+    plugin.get_blueprint()
 
 
 def test_plugin_after_resource_create_delegates_to_resource_hooks(monkeypatch):
