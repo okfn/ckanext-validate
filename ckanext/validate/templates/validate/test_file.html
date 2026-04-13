@@ -13,7 +13,7 @@
     {{ _('Upload a CSV file to check it for errors. The file will not be saved or linked to any dataset.') }}
   </p>
 
-  {% if report_valid is not none %}
+  {% if success %}
     {% if report_valid %}
       <div class="alert alert-success">
         <strong>{{ _('Valid') }}</strong> &mdash;
