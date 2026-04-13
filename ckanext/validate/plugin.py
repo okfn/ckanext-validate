@@ -5,6 +5,7 @@ from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.blueprints import resource as validate_blueprint
 from ckanext.validate import resource_hooks
+from ckanext.validate import helpers as h
 
 
 class ValidatePlugin(plugins.SingletonPlugin):
@@ -13,6 +14,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IResourceController)
+    plugins.implements(plugins.ITemplateHelpers)
 
     # IConfigurer
 
@@ -72,3 +74,8 @@ class ValidatePlugin(plugins.SingletonPlugin):
             resource_dict=resource,
             operation="update",
         )
+
+    def get_helpers(self):
+        return {
+            "get_resource_validation_state": h.get_resource_validation_state,
+        }
