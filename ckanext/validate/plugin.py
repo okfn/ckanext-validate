@@ -4,6 +4,7 @@ import ckan.plugins.toolkit as toolkit
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.blueprints import resource as validate_blueprint
+from ckanext.validate.blueprints.resource import validate_test_file_blueprint
 from ckanext.validate import resource_hooks
 
 
@@ -40,7 +41,10 @@ class ValidatePlugin(plugins.SingletonPlugin):
     # IBlueprint
 
     def get_blueprint(self):
-        return [validate_blueprint.resource_validate_blueprint]
+        return [
+            validate_blueprint.resource_validate_blueprint,
+            validate_test_file_blueprint,
+        ]
 
     # IResourceController
         # Added to hook into resource create/update events so CSV resources can be
