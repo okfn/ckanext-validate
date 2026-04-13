@@ -118,7 +118,6 @@ def test_file():
 
         tmp_fd, tmp_path = tempfile.mkstemp(suffix=".csv")
         try:
-            os.close(tmp_fd)
             uploaded_file.save(tmp_path)
 
             with system.use_context(trusted=True):
@@ -152,6 +151,7 @@ def test_file():
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
+            os.close(tmp_fd)  # TODO: check!
             success = True
 
     return base.render(
