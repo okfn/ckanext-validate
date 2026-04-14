@@ -6,6 +6,7 @@ from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.blueprints import resource as validate_blueprint
 from ckanext.validate.blueprints.resource import validate_test_file_blueprint
 from ckanext.validate import resource_hooks
+from ckanext.validate import helpers as h
 
 
 class ValidatePlugin(plugins.SingletonPlugin):
@@ -14,6 +15,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IResourceController)
+    plugins.implements(plugins.ITemplateHelpers)
 
     # IConfigurer
 
@@ -51,6 +53,21 @@ class ValidatePlugin(plugins.SingletonPlugin):
         # automatically marked as pending and sent to background validation without
         # modifying CKAN core actions.
 
+    def before_resource_create(self, context, resource):
+        pass
+
+    def before_resource_update(self, context, current, resource):
+        pass
+
+    def before_resource_delete(self, context, resource, resources):
+        pass
+
+    def after_resource_delete(self, context, resources):
+        pass
+
+    def before_resource_show(self, resource_dict):
+        pass
+
     def after_resource_create(self, context, resource):
         resource_hooks.handle_resource_change(
             context=context,
@@ -65,6 +82,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
             operation="update",
         )
 
+<<<<<<< 1-2-add-test
     def before_resource_show(self, resource_dict):
         return resource_dict
 
@@ -79,3 +97,9 @@ class ValidatePlugin(plugins.SingletonPlugin):
 
     def after_resource_delete(self, context, resources):
         pass
+=======
+    def get_helpers(self):
+        return {
+            "get_resource_validation_state": h.get_resource_validation_state,
+        }
+>>>>>>> 11-3-Trigger-a-background-job
