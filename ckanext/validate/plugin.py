@@ -82,7 +82,6 @@ class ValidatePlugin(plugins.SingletonPlugin):
             operation="update",
         )
 
-<<<<<<< 1-2-add-test
     def before_resource_show(self, resource_dict):
         return resource_dict
 
@@ -97,9 +96,8 @@ class ValidatePlugin(plugins.SingletonPlugin):
 
     def after_resource_delete(self, context, resources):
         pass
-=======
+
     def get_helpers(self):
         return {
             "get_resource_validation_state": h.get_resource_validation_state,
         }
->>>>>>> 11-3-Trigger-a-background-job
