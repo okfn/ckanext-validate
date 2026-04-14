@@ -1,4 +1,3 @@
-import json
 import logging
 
 from frictionless import system, Resource
@@ -17,8 +16,7 @@ def resource_validate(context, data_dict):
     :param id: the id of the resource to validate
     :type id: string
 
-    :returns: resource dict with updated validation_status and
-              validation_error_count fields
+    :returns: the resource dict
     :rtype: dict
     """
     resource_id = toolkit.get_or_bust(data_dict, "id")
@@ -88,7 +86,6 @@ def resource_validate(context, data_dict):
 
     error_count = len(error_details)
 
-    # Persist result in dedicated table
     Validation.create(
         resource_id=resource_id,
         status=status,
@@ -96,22 +93,12 @@ def resource_validate(context, data_dict):
         errors=error_details,
     )
 
-    updated_resource = toolkit.get_action("resource_patch")(
-        {"ignore_auth": True},
-        {
-            "id": resource_id,
-            "validation_status": status,
-            "validation_error_count": error_count,
-            "validation_errors": json.dumps(error_details),
-        },
-    )
-
     log.info(
         "Resource %s validation finished: status=%s errors=%d",
         resource_id, status, error_count,
     )
 
-    return updated_resource
+    return resource
 
 
 def resource_validation_show(context, data_dict):

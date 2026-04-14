@@ -1,6 +1,8 @@
-import json
 import logging
+
 import ckan.plugins.toolkit as toolkit
+
+from ckanext.validate.model import Validation
 
 log = logging.getLogger(__name__)
 
@@ -15,24 +17,6 @@ https://docs.ckan.org/en/2.11/maintaining/cli.html
 """
 
 
-def patch_resource_validation_error(resource_id, message):
-    toolkit.get_action("resource_patch")(
-        {"ignore_auth": True},
-        {
-            "id": resource_id,
-            "validation_status": "error",
-            "validation_error_count": None,
-            "validation_errors": json.dumps(
-                [
-                    {
-                        "message": message,
-                    }
-                ]
-            ),
-        },
-    )
-
-
 def run_resource_validation_job(resource_id):
     """
     Step 5:
@@ -41,9 +25,12 @@ def run_resource_validation_job(resource_id):
     """
     log.info("Starting background validation for resource %s", resource_id)
 
+    site_user = toolkit.get_action("get_site_user")({"ignore_auth": True}, {})
+    context = {"ignore_auth": True, "user": site_user["name"]}
+
     try:
         toolkit.get_action("resource_validate")(
-            {"ignore_auth": True},
+            context,
             {"id": resource_id},
         )
         log.info("Finished background validation for resource %s", resource_id)
@@ -54,9 +41,11 @@ def run_resource_validation_job(resource_id):
             resource_id,
         )
 
-        patch_resource_validation_error(
-            resource_id,
-            toolkit._("System error: {0}").format(str(exc)),
+        Validation.create(
+            resource_id=resource_id,
+            status="error",
+            error_count=0,
+            errors=[{"message": toolkit._("System error: {0}").format(str(exc))}],
         )
 
         raise

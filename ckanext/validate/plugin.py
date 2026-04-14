@@ -78,4 +78,5 @@ class ValidatePlugin(plugins.SingletonPlugin):
     def get_helpers(self):
         return {
             "get_resource_validation_state": h.get_resource_validation_state,
+            "get_resource_validation_job_status": h.get_resource_validation_job_status,
         }
