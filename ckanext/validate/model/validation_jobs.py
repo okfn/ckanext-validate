@@ -1,4 +1,5 @@
 import datetime
+import enum
 import logging
 
 from sqlalchemy import Column, DateTime, Index, Integer, UnicodeText
@@ -9,6 +10,29 @@ from ckan.plugins import toolkit
 
 
 log = logging.getLogger(__name__)
+
+
+class JobStatus(str, enum.Enum):
+    # Pending / in-flight
+    QUEUED = "queued"
+    STARTED = "started"
+    DEFERRED = "deferred"
+    SCHEDULED = "scheduled"
+    # Terminal — success
+    FINISHED = "finished"
+    # Terminal — failure
+    FAILED = "failed"
+    STOPPED = "stopped"
+    CANCELED = "canceled"
+    ERROR = "error"
+
+    @classmethod
+    def pending_statuses(cls):
+        return {cls.QUEUED, cls.STARTED, cls.DEFERRED, cls.SCHEDULED}
+
+    @classmethod
+    def error_statuses(cls):
+        return {cls.FAILED, cls.STOPPED, cls.CANCELED}
 
 
 class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
@@ -46,7 +70,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
         record = cls.get_latest_job_for_resource(resource_id)
         if record:
             record.status = status
-            if status in ("finished", "error"):
+            if status in (JobStatus.FINISHED, JobStatus.ERROR):
                 record.finish_timestamp = datetime.datetime.utcnow()
             log.debug("Updating ValidationJob for resource_id %s to status %s", resource_id, status)
             record.commit()

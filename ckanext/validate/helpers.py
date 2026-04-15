@@ -1,9 +1,5 @@
 from ckanext.validate.model.validation import Validation
-from ckanext.validate.model.validation_jobs import ValidationJob
-
-
-PENDING_JOB_STATUSES = {"queued", "started", "deferred", "scheduled"}
-ERROR_JOB_STATUSES = {"failed", "stopped", "canceled"}
+from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 
 def get_resource_validation_job_status(resource_dict):
@@ -28,10 +24,10 @@ def get_resource_validation_state(resource_dict):
         return status
 
     job_status = get_resource_validation_job_status(resource_dict)
-    if job_status in PENDING_JOB_STATUSES:
+    if job_status in JobStatus.pending_statuses():
         return "pending"
 
-    if job_status in ERROR_JOB_STATUSES:
+    if job_status in JobStatus.error_statuses():
         return "error"
 
     return None
