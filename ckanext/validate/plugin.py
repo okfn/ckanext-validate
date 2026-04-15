@@ -65,11 +65,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
         pass
 
     def after_resource_update(self, context, resource):
-        resource_hooks.handle_resource_change(
-            context=context,
-            resource_dict=resource,
-            operation="update",
-        )
+        resource_hooks.handle_resource_change(resource)
 
     def get_helpers(self):
         return {

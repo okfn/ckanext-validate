@@ -48,7 +48,7 @@ def enqueue_resource_validation_job(resource_id):
 def handle_resource_change(resource_dict):
     if not is_resource_eligible_for_auto_validation(resource_dict):
         log.debug(
-            "Skipping auto-validation flow for resource %s on %s "
+            "Skipping auto-validation flow for resource %s "
             "(format=%r, state=%r, url_type=%r)",
             resource_dict.get("id") if resource_dict else None,
             resource_dict.get("format") if resource_dict else None,
@@ -60,8 +60,5 @@ def handle_resource_change(resource_dict):
     resource_id = resource_dict["id"]
     enqueue_resource_validation_job(resource_id)
 
-    log.info(
-        "Validation job enqueued for resource %s after resource_%s",
-        resource_id,
-    )
+    log.info("Validation job enqueued for resource %s", resource_id)
     return True

@@ -18,6 +18,7 @@ class JobStatus(str, enum.Enum):
     STARTED = "started"
     DEFERRED = "deferred"
     SCHEDULED = "scheduled"
+    RUNNING = "running"
     # Terminal — success
     FINISHED = "finished"
     # Terminal — failure
@@ -28,7 +29,7 @@ class JobStatus(str, enum.Enum):
 
     @classmethod
     def pending_statuses(cls):
-        return {cls.QUEUED, cls.STARTED, cls.DEFERRED, cls.SCHEDULED}
+        return {cls.QUEUED, cls.STARTED, cls.DEFERRED, cls.SCHEDULED, cls.RUNNING}
 
     @classmethod
     def error_statuses(cls):
