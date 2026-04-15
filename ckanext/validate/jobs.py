@@ -2,7 +2,7 @@ import logging
 
 import ckan.plugins.toolkit as toolkit
 
-from ckanext.validate.model import Validation
+from ckanext.validate.model.validation_jobs import ValidationJob
 
 log = logging.getLogger(__name__)
 
@@ -28,24 +28,27 @@ def run_resource_validation_job(resource_id):
     site_user = toolkit.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"ignore_auth": True, "user": site_user["name"]}
 
+    ValidationJob.create(resource_id=resource_id, status="running")
     try:
         toolkit.get_action("resource_validate")(
             context,
             {"id": resource_id},
         )
         log.info("Finished background validation for resource %s", resource_id)
+        ValidationJob.update(resource_id=resource_id, status="finished")
 
-    except Exception as exc:
+    except ValueError as exc:
+        log.error(
+            "No existing validation job found for resource %s when trying to update status: %s",
+            resource_id,
+            str(exc),
+        )
+        ValidationJob.update(resource_id=resource_id, status="error")
+
+    except Exception:
         log.exception(
             "Background validation failed for resource %s",
             resource_id,
         )
 
-        Validation.create(
-            resource_id=resource_id,
-            status="error",
-            error_count=0,
-            errors=[{"message": toolkit._("System error: {0}").format(str(exc))}],
-        )
-
-        raise
+        ValidationJob.create(resource_id=resource_id, status="error")
