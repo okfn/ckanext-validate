@@ -1,0 +1,66 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _('Validate File') }}{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  {% asset 'validate/validate-css' %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  <h1>{{ _('Validate a CSV File') }}</h1>
+  <p class="text-muted">
+    {{ _('Upload a CSV file to check it for errors. The file will not be saved or linked to any dataset.') }}
+  </p>
+
+  {% if success %}
+    {% if report_valid %}
+      <div class="alert alert-success">
+        <strong>{{ _('Valid') }}</strong> &mdash;
+        {{ _('No errors found in') }} <em>{{ filename }}</em>.
+      </div>
+    {% else %}
+      <div class="alert alert-danger">
+        <strong>{{ _('Invalid') }}</strong> &mdash;
+        {{ errors | length }} {{ _('error(s) found in') }} <em>{{ filename }}</em>.
+      </div>
+      {% if errors %}
+        <table class="table table-condensed table-bordered">
+          <thead>
+            <tr>
+              <th>{{ _('Row') }}</th>
+              <th>{{ _('Field') }}</th>
+              <th>{{ _('Message') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for err in errors %}
+            <tr>
+              <td>{{ err.row or '-' }}</td>
+              <td>{{ err.field or '-' }}</td>
+              <td>{{ err.message }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+
+  <div class="module module-narrow module-shallow">
+    <div class="module-content">
+      <h3>{{ _('Upload CSV') }}</h3>
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
+        <div class="form-group">
+          <label for="file">{{ _('CSV File') }}</label>
+          <input type="file" name="file" id="file" class="form-control" accept=".csv" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-check-circle"></i>
+          {{ _('Validate') }}
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
