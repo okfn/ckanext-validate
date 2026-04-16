@@ -3,13 +3,15 @@
 {% block resource_item_title %}
   {{ super() }}
   {% if h.check_access('sysadmin') or h.check_access('package_update', {'id': res.package_id}) %}
-    {% set status = res.validation_status %}
+    {% set status = h.get_resource_validation_state(res) %}
     {% if status == 'success' %}
       <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
     {% elif status == 'failure' %}
       <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
     {% elif status == 'error' %}
       <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+    {% else %}
+      <span class="validate-badge validate-badge--pending">{{ _('No Validated') }}</span>
     {% endif %}
   {% endif %}
 {% endblock %}

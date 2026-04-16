@@ -1,5 +1,9 @@
 import logging
 
+import ckan.plugins.toolkit as toolkit
+
+from ckanext.validate import jobs
+
 log = logging.getLogger(__name__)
 
 
@@ -24,37 +28,37 @@ def is_resource_eligible_for_auto_validation(resource_dict):
     return True
 
 
-def handle_resource_change(context, resource_dict, operation):
-    """
-    Step 1 only:
-    detect whether a created/updated resource is a CSV candidate for
-    future automatic validation.
+def build_validation_job_id(resource_id):
+    return f"validate-resource-{resource_id}"
 
-    This function intentionally does not:
-    - patch validation fields
-    - enqueue jobs
-    - run validation
-    """
+
+def enqueue_resource_validation_job(resource_id):
+    try:
+        return toolkit.enqueue_job(
+            jobs.run_resource_validation_job,
+            args=[resource_id],
+            title=f"Validate resource {resource_id}",
+            rq_kwargs={"job_id": build_validation_job_id(resource_id)},
+        )
+    except Exception:
+        log.debug("Validation job already enqueued for resource %s, skipping", resource_id)
+        return None
+
+
+def handle_resource_change(resource_dict):
     if not is_resource_eligible_for_auto_validation(resource_dict):
         log.debug(
-            "Skipping auto-validation detection for resource %s on %s "
+            "Skipping auto-validation flow for resource %s "
             "(format=%r, state=%r, url_type=%r)",
-            resource_dict.get("id"),
-            operation,
-            resource_dict.get("format"),
-            resource_dict.get("state"),
-            resource_dict.get("url_type"),
+            resource_dict.get("id") if resource_dict else None,
+            resource_dict.get("format") if resource_dict else None,
+            resource_dict.get("state") if resource_dict else None,
+            resource_dict.get("url_type") if resource_dict else None,
         )
         return False
 
-    log.info(
-        "Auto-validation candidate detected on resource_%s: "
-        "id=%s format=%s url_type=%s url=%s",
-        operation,
-        resource_dict.get("id"),
-        resource_dict.get("format"),
-        resource_dict.get("url_type"),
-        resource_dict.get("url"),
-    )
+    resource_id = resource_dict["id"]
+    enqueue_resource_validation_job(resource_id)
 
+    log.info("Validation job enqueued for resource %s", resource_id)
     return True
