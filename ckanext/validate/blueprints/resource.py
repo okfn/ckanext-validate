@@ -41,9 +41,16 @@ def validate(package_id, resource_id):
 
     errors = {}
     if toolkit.request.method == "POST":
+        log.info(
+            "Manual validation request package_id=%s resource_id=%s current_user=%r method=%s",
+            package_id,
+            resource_id,
+            getattr(toolkit.current_user, "name", None),
+            toolkit.request.method,
+        )
         try:
             context = {"user": toolkit.current_user.name}
-            toolkit.get_action("resource_validate")(context, {"id": resource_id})
+            resource = toolkit.get_action("resource_validate")(context, {"id": resource_id})
         except toolkit.ValidationError as e:
             errors = e.error_dict
         except toolkit.NotAuthorized:

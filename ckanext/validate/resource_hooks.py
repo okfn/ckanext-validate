@@ -6,6 +6,8 @@ from ckanext.validate import jobs
 
 log = logging.getLogger(__name__)
 
+_VALIDATE_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
+
 
 def is_csv_resource(resource_dict):
     fmt = (resource_dict.get("format") or "").strip().lower()
@@ -32,11 +34,32 @@ def build_validation_job_id(resource_id):
     return f"validate-resource-{resource_id}"
 
 
-def enqueue_resource_validation_job(resource_id):
+def mark_resource_as_pending(resource_id, username=None):
+    patch_context = {
+        "ignore_auth": True,
+        _VALIDATE_INTERNAL_PATCH_FLAG: True,
+    }
+    if username:
+        patch_context["user"] = username
+
+    log.info("Marking resource %s as pending", resource_id)
+    toolkit.get_action("resource_patch")(
+        patch_context,
+        {
+            "id": resource_id,
+            "validation_status": "pending",
+            "validation_error_count": None,
+            "validation_errors": None,
+        },
+    )
+
+
+def enqueue_resource_validation_job(resource_id, username=None):
+    log.info("Enqueuing validation job for resource %s user=%r", resource_id, username)
     try:
         return toolkit.enqueue_job(
             jobs.run_resource_validation_job,
-            args=[resource_id],
+            args=[resource_id, username],
             title=f"Validate resource {resource_id}",
             rq_kwargs={"job_id": build_validation_job_id(resource_id)},
         )
@@ -58,7 +81,9 @@ def handle_resource_change(resource_dict):
         return False
 
     resource_id = resource_dict["id"]
-    enqueue_resource_validation_job(resource_id)
+    username = resource_dict.get("user")
+    mark_resource_as_pending(resource_id, username)
+    enqueue_resource_validation_job(resource_id, username)
 
     log.info("Validation job enqueued for resource %s", resource_id)
     return True

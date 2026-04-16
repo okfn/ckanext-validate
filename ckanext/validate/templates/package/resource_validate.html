@@ -18,7 +18,11 @@
       <h3>{{ _('Current Status') }}</h3>
       {% set status = h.get_resource_validation_state(res) %}
 
-      {% if status == 'success' %}
+      {% if status == 'pending' %}
+        <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+        <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
+
+      {% elif status == 'success' %}
         <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
 
       {% elif status == 'failure' %}
@@ -48,8 +52,28 @@
         {% endif %}
 
       {% elif status == 'error' %}
-        <span class="validate-badge validate-badge--error">{{ _('Validation Error') }}</span>
+        <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
         <p class="mt-2">{{ _('An error occurred while running the validator.') }}</p>
+          {% if validation_errors %}
+            <table class="table table-condensed table-bordered mt-2">
+              <thead>
+                <tr>
+                  <th>{{ _('Row') }}</th>
+                  <th>{{ _('Field') }}</th>
+                  <th>{{ _('Message') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for err in validation_errors %}
+                <tr>
+                  <td>{{ err.row or '-' }}</td>
+                  <td>{{ err.field or '-' }}</td>
+                  <td>{{ err.message }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
 
       {% elif status == 'pending' %}
         <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
