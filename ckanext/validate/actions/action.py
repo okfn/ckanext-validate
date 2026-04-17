@@ -1,4 +1,3 @@
-import json
 import logging
 
 from frictionless import system, Resource
@@ -11,8 +10,6 @@ from ckanext.validate.model import Validation
 
 log = logging.getLogger(__name__)
 
-_VALIDATE_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
-
 
 def resource_validate(context, data_dict):
     """Validate a CSV resource using frictionless and store the result.
@@ -20,8 +17,7 @@ def resource_validate(context, data_dict):
     :param id: the id of the resource to validate
     :type id: string
 
-    :returns: resource dict with updated validation_status and
-              validation_error_count fields
+    :returns: the resource dict
     :rtype: dict
     """
     resource_id = toolkit.get_or_bust(data_dict, "id")
@@ -91,7 +87,6 @@ def resource_validate(context, data_dict):
 
     error_count = len(error_details)
 
-    # Persist result in dedicated table
     Validation.create(
         resource_id=resource_id,
         status=status,
@@ -99,35 +94,12 @@ def resource_validate(context, data_dict):
         errors=error_details,
     )
 
-    patch_context = {
-        "ignore_auth": True,
-        _VALIDATE_INTERNAL_PATCH_FLAG: True,
-    }
-    if context.get("user"):
-        patch_context["user"] = context["user"]
-
-    log.info(
-        "Calling resource_patch for resource_id=%s patch_context=%r",
-        resource_id,
-        patch_context,
-    )
-
-    updated_resource = toolkit.get_action("resource_patch")(
-        patch_context,
-        {
-            "id": resource_id,
-            "validation_status": status,
-            "validation_error_count": error_count,
-            "validation_errors": json.dumps(error_details),
-        },
-    )
-
     log.info(
         "Resource %s validation finished: status=%s errors=%d",
         resource_id, status, error_count,
     )
 
-    return updated_resource
+    return resource
 
 
 def resource_validation_show(context, data_dict):

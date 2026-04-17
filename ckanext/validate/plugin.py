@@ -14,7 +14,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
-    plugins.implements(plugins.IResourceController)
+    plugins.implements(plugins.IResourceController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
 
     # IConfigurer
@@ -49,55 +49,17 @@ class ValidatePlugin(plugins.SingletonPlugin):
         ]
 
     # IResourceController
-        # Added to hook into resource create/update events so CSV resources can be
-        # automatically marked as pending and sent to background validation without
-        # modifying CKAN core actions.
-
-    def before_resource_create(self, context, resource):
-        pass
-
-    def before_resource_update(self, context, current, resource):
-        pass
-
-    def before_resource_delete(self, context, resource, resources):
-        pass
-
-    def after_resource_delete(self, context, resources):
-        pass
-
-    def before_resource_show(self, resource_dict):
-        pass
 
     def after_resource_create(self, context, resource):
-        resource_hooks.handle_resource_change(
-            context=context,
-            resource_dict=resource,
-            operation="create",
-        )
+        resource_hooks.handle_resource_change(resource)
 
     def after_resource_update(self, context, resource):
-        resource_hooks.handle_resource_change(
-            context=context,
-            resource_dict=resource,
-            operation="update",
-        )
+        resource_hooks.handle_resource_change(resource)
 
-    def before_resource_show(self, resource_dict):
-        return resource_dict
-
-    def before_resource_create(self, context, resource):
-        return resource
-
-    def before_resource_update(self, context, current, resource):
-        return resource
-
-    def before_resource_delete(self, context, resource, resources):
-        pass
-
-    def after_resource_delete(self, context, resources):
-        pass
+    # ITemplateHelpers
 
     def get_helpers(self):
         return {
             "get_resource_validation_state": h.get_resource_validation_state,
+            "get_resource_validation_job_status": h.get_resource_validation_job_status,
         }
