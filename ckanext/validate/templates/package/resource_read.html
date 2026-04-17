@@ -10,14 +10,14 @@
           <i class="fa fa-check-circle"></i>
           {{ _('Validate') }}
           {% set status = h.get_resource_validation_state(res) %}
-          {% if status == 'pending' %}
-            <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
-          {% elif status == 'success' %}
+          {% if status == 'success' %}
             <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
           {% elif status == 'failure' %}
             <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
           {% elif status == 'error' %}
             <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+          {% elif status == 'pending' %}
+            <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
           {% endif %}
         </a>
       </li>

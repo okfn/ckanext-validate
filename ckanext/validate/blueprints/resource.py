@@ -16,6 +16,10 @@ resource_validate_blueprint = Blueprint(
     "resource_validate", __name__, url_prefix="/dataset"
 )
 
+validate_test_file_blueprint = Blueprint(
+    "validate_test_file", __name__, url_prefix="/validate"
+)
+
 
 @resource_validate_blueprint.route(
     "/<package_id>/resource/<resource_id>/validate", methods=["GET", "POST"]

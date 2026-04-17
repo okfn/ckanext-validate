@@ -1,4 +1,3 @@
-
 import logging
 
 import ckan.plugins.toolkit as toolkit
