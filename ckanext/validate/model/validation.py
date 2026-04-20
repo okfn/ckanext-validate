@@ -50,6 +50,14 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
             .first()
         )
 
+    @classmethod
+    def get_resource_status(cls, resource_id):
+        record = cls.get_latest(resource_id)
+        if record:
+            return record.status
+        else:
+            return None
+
     def as_dict(self):
         return {
             "id": self.id,

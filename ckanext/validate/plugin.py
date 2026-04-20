@@ -3,8 +3,9 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
-from ckanext.validate.blueprints import resource as validate_blueprint
+from ckanext.validate.blueprints import resource
 from ckanext.validate import resource_hooks
+from ckanext.validate import helpers as h
 
 
 class ValidatePlugin(plugins.SingletonPlugin):
@@ -12,7 +13,8 @@ class ValidatePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
-    plugins.implements(plugins.IResourceController)
+    plugins.implements(plugins.IResourceController, inherit=True)
+    plugins.implements(plugins.ITemplateHelpers)
 
     # IConfigurer
 
@@ -40,29 +42,18 @@ class ValidatePlugin(plugins.SingletonPlugin):
     # IBlueprint
 
     def get_blueprint(self):
-        return [validate_blueprint.resource_validate_blueprint]
+        return [
+            resource.resource_validate_blueprint,
+            resource.validate_test_file_blueprint,
+        ]
 
     # IResourceController
-        # Added to hook into resource create/update events so CSV resources can be
-        # automatically marked as pending and sent to background validation without
-        # modifying CKAN core actions.
 
     def after_resource_create(self, context, resource):
-        resource_hooks.handle_resource_change(
-            context=context,
-            resource_dict=resource,
-            operation="create",
-        )
+        resource_hooks.handle_resource_change(resource)
 
     def after_resource_update(self, context, resource):
-        resource_hooks.handle_resource_change(
-            context=context,
-            resource_dict=resource,
-            operation="update",
-        )
-
-    def before_resource_show(self, resource_dict):
-        return resource_dict
+        resource_hooks.handle_resource_change(resource)
 
     def before_resource_create(self, context, resource):
         resource_hooks.validate_csv_upload_strict(resource)
@@ -77,3 +68,11 @@ class ValidatePlugin(plugins.SingletonPlugin):
 
     def after_resource_delete(self, context, resources):
         pass
+
+    # ITemplateHelpers
+
+    def get_helpers(self):
+        return {
+            "get_resource_validation_state": h.get_resource_validation_state,
+            "get_resource_validation_job_status": h.get_resource_validation_job_status,
+        }

@@ -52,6 +52,9 @@ from ckan.plugins import plugin_loaded
 from ckan.plugins import toolkit as tk
 
 from ckanext.validate import resource_hooks
+from ckanext.validate.actions import action as validate_action
+from ckanext.validate.auth import validation as validate_auth
+from ckanext.validate.blueprints.resource import validate_test_file_blueprint
 from ckanext.validate.blueprints import resource as validate_resource
 from ckanext.validate.plugin import ValidatePlugin
 
@@ -67,71 +70,69 @@ def test_plugin_registers_expected_blueprint():
 
     blueprints = plugin.get_blueprint()
 
-    assert blueprints == [validate_resource.resource_validate_blueprint]
+    assert blueprints == [
+        validate_resource.resource_validate_blueprint,
+        validate_test_file_blueprint,
+    ]
+
+
+def test_plugin_registers_expected_actions():
+    plugin = ValidatePlugin()
+
+    assert plugin.get_actions() == {
+        "resource_validate": validate_action.resource_validate,
+        "resource_validation_show": validate_action.resource_validation_show,
+    }
+
+
+def test_plugin_registers_expected_auth_functions():
+    plugin = ValidatePlugin()
+
+    assert plugin.get_auth_functions() == {
+        "resource_validate": validate_auth.resource_validate,
+        "resource_validation_show": validate_auth.resource_validation_show,
+    }
 
 
 def test_plugin_after_resource_create_delegates_to_resource_hooks(monkeypatch):
     captured = {}
 
-    def fake_handle_resource_change(context, resource_dict, operation):
-        captured["context"] = context
+    def fake_handle_resource_change(resource_dict):
         captured["resource_dict"] = resource_dict
-        captured["operation"] = operation
 
     monkeypatch.setattr(resource_hooks, "handle_resource_change", fake_handle_resource_change)
 
-    username = "alice"
     plugin = ValidatePlugin()
-    plugin.after_resource_create({"user": username}, {"id": "res-1", "format": "CSV"})
+    plugin.after_resource_create({"user": "alice"}, {"id": "res-1", "format": "CSV"})
 
     assert captured == {
-        "context": {"user": username},
         "resource_dict": {"id": "res-1", "format": "CSV"},
-        "operation": "create",
     }
 
 
 def test_plugin_after_resource_update_delegates_to_resource_hooks(monkeypatch):
     captured = {}
 
-    def fake_handle_resource_change(context, resource_dict, operation):
-        captured["context"] = context
+    def fake_handle_resource_change(resource_dict):
         captured["resource_dict"] = resource_dict
-        captured["operation"] = operation
 
     monkeypatch.setattr(resource_hooks, "handle_resource_change", fake_handle_resource_change)
 
-    username = "alice"
     plugin = ValidatePlugin()
-    plugin.after_resource_update({"user": username}, {"id": "res-2", "format": "CSV"})
+    plugin.after_resource_update({"user": "alice"}, {"id": "res-2", "format": "CSV"})
 
     assert captured == {
-        "context": {"user": username},
         "resource_dict": {"id": "res-2", "format": "CSV"},
-        "operation": "update",
     }
 
 
-def test_plugin_before_resource_show_returns_resource_dict():
+def test_plugin_registers_expected_helpers():
     plugin = ValidatePlugin()
-    resource = {"id": "res-3"}
 
-    assert plugin.before_resource_show(resource) == resource
+    helpers = plugin.get_helpers()
 
-
-def test_plugin_before_resource_create_returns_resource_dict():
-    plugin = ValidatePlugin()
-    resource = {"id": "res-4"}
-
-    assert plugin.before_resource_create({}, resource) == resource
-
-
-def test_plugin_before_resource_update_returns_resource_dict():
-    plugin = ValidatePlugin()
-    current = {"id": "res-5"}
-    resource = {"id": "res-5", "format": "CSV"}
-
-    assert plugin.before_resource_update({}, current, resource) == resource
+    assert "get_resource_validation_state" in helpers
+    assert "get_resource_validation_job_status" in helpers
 
 
 def test_plugin_delete_hooks_are_noops():

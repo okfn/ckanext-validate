@@ -58,14 +58,13 @@ def test_resource_validate_uploaded_file_success(monkeypatch):
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "success"
-    assert result["validation_error_count"] == 0
-    assert result["validation_errors"] == "[]"
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
     assert record is not None
     assert record.status == "success"
     assert record.error_count == 0
+    assert record.errors == []
 
 
 def test_resource_validate_collects_task_errors(monkeypatch):
@@ -94,9 +93,7 @@ def test_resource_validate_collects_task_errors(monkeypatch):
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "failure"
-    assert result["validation_error_count"] == 2
-    assert result["validation_errors"] != "[]"
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
     assert record is not None
@@ -126,10 +123,11 @@ def test_resource_validate_adds_structural_error_when_report_has_no_task_errors(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "failure"
-    assert result["validation_error_count"] == 1
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
+    assert record.status == "failure"
+    assert record.error_count == 1
     assert record.errors == [
         {
             "message": "Structural validation error",
@@ -216,8 +214,7 @@ def test_resource_validate_with_real_frictionless_fixture_file():
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "failure"
-    assert result["validation_error_count"] >= 1
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
     assert record is not None
@@ -239,11 +236,11 @@ def test_resource_validate_with_bike_errors_fixture():
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "failure"
-    assert result["validation_error_count"] >= 1
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
     assert record is not None
+    assert record.status == "failure"
     assert record.error_count >= 1
 
     blank_row_error = next(
@@ -270,11 +267,11 @@ def test_resource_validate_with_so_wrong_fixture():
         {"user": sysadmin["name"]}, {"id": resource["id"]}
     )
 
-    assert result["validation_status"] == "failure"
-    assert result["validation_error_count"] >= 1
+    assert result["id"] == resource["id"]
 
     record = Validation.get_latest(resource["id"])
     assert record is not None
+    assert record.status == "failure"
     assert record.error_count >= 1
 
     messages = [err.get("message", "").lower() for err in (record.errors or [])]

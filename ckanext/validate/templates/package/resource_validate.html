@@ -12,11 +12,11 @@
     </div>
   {% endif %}
 
-  {# Current status badge #}
+    {# Current status badge #}
   <div class="module module-narrow module-shallow">
     <div class="module-content">
       <h3>{{ _('Current Status') }}</h3>
-      {% set status = res.validation_status %}
+      {% set status = h.get_resource_validation_state(res) %}
       {% if status == 'pending' %}
         <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
         <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
@@ -26,8 +26,8 @@
 
       {% elif status == 'failure' %}
         <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-        {% if res.validation_error_count %}
-          <p class="mt-2"><strong>{{ res.validation_error_count }} {{ _('errors detected') }}</strong></p>
+          {% if validation_error_count %}
+          <p class="mt-2"><strong>{{ validation_error_count }} {{ _('errors detected') }}</strong></p>
         {% endif %}
         {% if validation_errors %}
           <table class="table table-condensed table-bordered mt-2">
@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  {# Run validation button #}
+{# Run validation button #}
   <form method="post" action="{{ h.url_for('resource_validate.validate', package_id=pkg_dict.name, resource_id=res.id) }}">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-primary">
