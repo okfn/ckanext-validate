@@ -1,40 +1,12 @@
 from ckanext.validate import jobs
 from ckanext.validate import resource_hooks
 
-_INTERNAL_PATCH_FLAG = "_validate_internal_patch"
+
+def test_build_validation_job_id_is_deterministic():
+    assert resource_hooks.build_validation_job_id("res-1") == "validate-resource-res-1"
 
 
-def test_mark_resource_as_pending_uses_internal_flag_and_user(monkeypatch):
-    captured = {}
-
-    def fake_resource_patch(context, data_dict):
-        captured["context"] = context
-        captured["data_dict"] = data_dict
-        return data_dict
-
-    def fake_get_action(name):
-        assert name == "resource_patch"
-        return fake_resource_patch
-
-    monkeypatch.setattr(resource_hooks.toolkit, "get_action", fake_get_action)
-
-    username = "alice"
-    resource_hooks.mark_resource_as_pending("res-1", username)
-
-    assert captured["context"] == {
-        "ignore_auth": True,
-        _INTERNAL_PATCH_FLAG: True,
-        "user": username,
-    }
-    assert captured["data_dict"] == {
-        "id": "res-1",
-        "validation_status": "pending",
-        "validation_error_count": None,
-        "validation_errors": None,
-    }
-
-
-def test_enqueue_resource_validation_job_passes_username(monkeypatch):
+def test_enqueue_resource_validation_job_uses_deterministic_job_id(monkeypatch):
     captured = {}
 
     def fake_enqueue_job(fn, args=None, kwargs=None, title=None, queue="default", rq_kwargs=None):
@@ -48,21 +20,29 @@ def test_enqueue_resource_validation_job_passes_username(monkeypatch):
 
     monkeypatch.setattr(resource_hooks.toolkit, "enqueue_job", fake_enqueue_job)
 
-    username = "alice"
-    result = resource_hooks.enqueue_resource_validation_job("res-1", username)
+    result = resource_hooks.enqueue_resource_validation_job("res-1")
 
     assert result == "job-123"
     assert captured == {
         "fn": jobs.run_resource_validation_job,
-        "args": ["res-1", username],
+        "args": ["res-1"],
         "kwargs": None,
         "title": "Validate resource res-1",
-        "queue": "validate",
-        "rq_kwargs": None,
+        "queue": "default",
+        "rq_kwargs": {"job_id": "validate-resource-res-1"},
     }
 
 
-def test_handle_resource_change_marks_pending_and_enqueues_job(monkeypatch):
+def test_enqueue_resource_validation_job_returns_none_when_enqueue_fails(monkeypatch):
+    def fake_enqueue_job(fn, args=None, kwargs=None, title=None, queue="default", rq_kwargs=None):
+        raise RuntimeError("already queued")
+
+    monkeypatch.setattr(resource_hooks.toolkit, "enqueue_job", fake_enqueue_job)
+
+    assert resource_hooks.enqueue_resource_validation_job("res-1") is None
+
+
+def test_handle_resource_change_enqueues_job_for_eligible_resource(monkeypatch):
     resource = {
         "id": "res-2",
         "format": "CSV",
@@ -71,66 +51,22 @@ def test_handle_resource_change_marks_pending_and_enqueues_job(monkeypatch):
         "state": "active",
     }
 
-    calls = {
-        "pending": [],
-        "enqueue": [],
-    }
+    captured = {}
 
-    def fake_mark_resource_as_pending(resource_id, username=None):
-        calls["pending"].append((resource_id, username))
-
-    def fake_enqueue_resource_validation_job(resource_id, username=None):
-        calls["enqueue"].append((resource_id, username))
+    def fake_enqueue_resource_validation_job(resource_id):
+        captured["resource_id"] = resource_id
         return "job-123"
 
-    monkeypatch.setattr(
-        resource_hooks,
-        "mark_resource_as_pending",
-        fake_mark_resource_as_pending,
-    )
     monkeypatch.setattr(
         resource_hooks,
         "enqueue_resource_validation_job",
         fake_enqueue_resource_validation_job,
     )
 
-    username = "alice"
-    result = resource_hooks.handle_resource_change({"user": username}, resource, "create")
+    result = resource_hooks.handle_resource_change(resource)
 
     assert result is True
-    assert calls["pending"] == [("res-2", username)]
-    assert calls["enqueue"] == [("res-2", username)]
-
-
-def test_handle_resource_change_skips_internal_patch_reentry(monkeypatch):
-    resource = {
-        "id": "res-3",
-        "format": "CSV",
-        "url_type": "upload",
-        "url": "",
-        "state": "active",
-    }
-
-    called = {"pending": False, "enqueue": False}
-
-    def fake_mark_resource_as_pending(resource_id, username=None):
-        called["pending"] = True
-
-    def fake_enqueue_resource_validation_job(resource_id, username=None):
-        called["enqueue"] = True
-
-    monkeypatch.setattr(resource_hooks, "mark_resource_as_pending", fake_mark_resource_as_pending)
-    monkeypatch.setattr(resource_hooks, "enqueue_resource_validation_job", fake_enqueue_resource_validation_job)
-
-    username = "alice"
-    result = resource_hooks.handle_resource_change(
-        {_INTERNAL_PATCH_FLAG: True, "user": username},
-        resource,
-        "update",
-    )
-
-    assert result is False
-    assert called == {"pending": False, "enqueue": False}
+    assert captured == {"resource_id": "res-2"}
 
 
 def test_handle_resource_change_skips_non_csv(monkeypatch):
@@ -142,19 +78,36 @@ def test_handle_resource_change_skips_non_csv(monkeypatch):
         "state": "active",
     }
 
-    called = {"pending": False, "enqueue": False}
+    called = {"enqueue": False}
 
-    def fake_mark_resource_as_pending(resource_id, username=None):
-        called["pending"] = True
-
-    def fake_enqueue_resource_validation_job(resource_id, username=None):
+    def fake_enqueue_resource_validation_job(resource_id):
         called["enqueue"] = True
 
-    monkeypatch.setattr(resource_hooks, "mark_resource_as_pending", fake_mark_resource_as_pending)
     monkeypatch.setattr(resource_hooks, "enqueue_resource_validation_job", fake_enqueue_resource_validation_job)
 
-    username = "alice"
-    result = resource_hooks.handle_resource_change({"user": username}, resource, "update")
+    result = resource_hooks.handle_resource_change(resource)
 
     assert result is False
-    assert called == {"pending": False, "enqueue": False}
+    assert called == {"enqueue": False}
+
+
+def test_handle_resource_change_skips_deleted_resource(monkeypatch):
+    resource = {
+        "id": "res-5",
+        "format": "CSV",
+        "url_type": "upload",
+        "url": "",
+        "state": "deleted",
+    }
+
+    called = {"enqueue": False}
+
+    def fake_enqueue_resource_validation_job(resource_id):
+        called["enqueue"] = True
+
+    monkeypatch.setattr(resource_hooks, "enqueue_resource_validation_job", fake_enqueue_resource_validation_job)
+
+    result = resource_hooks.handle_resource_change(resource)
+
+    assert result is False
+    assert called == {"enqueue": False}
