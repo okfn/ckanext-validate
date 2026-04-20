@@ -1,3 +1,5 @@
+import logging
+
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
@@ -6,6 +8,9 @@ from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.blueprints import resource
 from ckanext.validate import resource_hooks
 from ckanext.validate import helpers as h
+
+
+log = logging.getLogger(__name__)
 
 
 class ValidatePlugin(plugins.SingletonPlugin):
@@ -50,14 +55,12 @@ class ValidatePlugin(plugins.SingletonPlugin):
     # IResourceController
 
     def after_resource_create(self, context, resource):
-        # TODO: Calling handle_resource_change on create and update
-        # will validate twice when creating resources through the UI. Review.
         resource_hooks.handle_resource_change(resource)
 
-    def after_resource_update(self, context, resource):
-        # TODO: Calling handle_resource_change on create and update
-        # will validate twice when creating resources through the UI. Review.
-        resource_hooks.handle_resource_change(resource)
+    def before_resource_update(self, context, current_resource, updated_resource):
+        if updated_resource.get('upload'):
+            log.debug("Resource file changed, triggering validation for resource %s", updated_resource.get("id"))
+            resource_hooks.handle_resource_change(updated_resource)
 
     # ITemplateHelpers
 

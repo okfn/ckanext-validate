@@ -109,7 +109,7 @@ def test_plugin_after_resource_create_delegates_to_resource_hooks(monkeypatch):
     }
 
 
-def test_plugin_after_resource_update_delegates_to_resource_hooks(monkeypatch):
+def test_validation_is_executed_if_new_upload_on_resource_update(monkeypatch):
     captured = {}
 
     def fake_handle_resource_change(resource_dict):
@@ -118,11 +118,33 @@ def test_plugin_after_resource_update_delegates_to_resource_hooks(monkeypatch):
     monkeypatch.setattr(resource_hooks, "handle_resource_change", fake_handle_resource_change)
 
     plugin = ValidatePlugin()
-    plugin.after_resource_update({"user": "alice"}, {"id": "res-2", "format": "CSV"})
+    plugin.before_resource_update(
+        {"user": "alice"},
+        {"id": "res-1", "format": "CSV", "upload": None},
+        {"id": "res-1", "format": "CSV", "upload": "new_file.csv"},
+    )
 
     assert captured == {
-        "resource_dict": {"id": "res-2", "format": "CSV"},
+        "resource_dict": {"id": "res-1", "format": "CSV", "upload": "new_file.csv"},
     }
+
+
+def test_validation_is_not_executed_if_no_upload_on_resource_update(monkeypatch):
+    called = {"handle_resource_change": False}
+
+    def fake_handle_resource_change(resource_dict):
+        called["handle_resource_change"] = True
+
+    monkeypatch.setattr(resource_hooks, "handle_resource_change", fake_handle_resource_change)
+
+    plugin = ValidatePlugin()
+    plugin.before_resource_update(
+        {"user": "alice"},
+        {"id": "res-1", "format": "CSV", "upload": None},
+        {"id": "res-1", "format": "TSV", "upload": None, "name": "Resource 1"},
+    )
+
+    assert called == {"handle_resource_change": False}
 
 
 def test_plugin_registers_expected_helpers():
