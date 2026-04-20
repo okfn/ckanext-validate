@@ -50,9 +50,13 @@ class ValidatePlugin(plugins.SingletonPlugin):
     # IResourceController
 
     def after_resource_create(self, context, resource):
+        # TODO: Calling handle_resource_change on create and update
+        # will validate twice when creating resources through the UI. Review.
         resource_hooks.handle_resource_change(resource)
 
     def after_resource_update(self, context, resource):
+        # TODO: Calling handle_resource_change on create and update
+        # will validate twice when creating resources through the UI. Review.
         resource_hooks.handle_resource_change(resource)
 
     # ITemplateHelpers
