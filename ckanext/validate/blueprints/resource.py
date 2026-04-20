@@ -41,6 +41,13 @@ def validate(package_id, resource_id):
 
     errors = {}
     if toolkit.request.method == "POST":
+        log.info(
+            "Manual validation request package_id=%s resource_id=%s current_user=%r method=%s",
+            package_id,
+            resource_id,
+            getattr(toolkit.current_user, "name", None),
+            toolkit.request.method,
+        )
         try:
             context = {"user": toolkit.current_user.name}
             toolkit.get_action("resource_validate")(context, {"id": resource_id})
@@ -61,6 +68,7 @@ def validate(package_id, resource_id):
 
     record = Validation.get_latest(resource_id)
     validation_errors = record.errors if record else []
+    validation_error_count = record.error_count if record else 0
 
     return base.render(
         "package/resource_validate.html",
@@ -72,12 +80,17 @@ def validate(package_id, resource_id):
             "res": resource,
             "errors": errors,
             "validation_errors": validation_errors or [],
-            "validation_error_count": record.error_count if record else 0,
+            "validation_error_count": validation_error_count,
         },
     )
 
 
-@validate_test_file_blueprint.route("/test-file", methods=["GET", "POST"])
+validate_test_file_blueprint = Blueprint(
+    "validate_test_file", __name__
+)
+
+
+@validate_test_file_blueprint.route("/validate/test-file", methods=["GET", "POST"])
 def test_file():
     errors = []
     report_valid = None

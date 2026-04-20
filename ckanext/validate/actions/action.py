@@ -7,6 +7,7 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.model import Validation
 
+
 log = logging.getLogger(__name__)
 
 

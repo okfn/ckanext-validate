@@ -37,7 +37,7 @@ class JobStatus(str, enum.Enum):
 
 
 class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
-    """Stores the result of each Frictionless validation run for a resource."""
+    """Stores the status of each background validation job for a resource."""
 
     __tablename__ = "resource_validation_jobs"
 
@@ -73,10 +73,8 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
             record.status = status
             if status in (JobStatus.FINISHED, JobStatus.ERROR):
                 record.finish_timestamp = datetime.datetime.utcnow()
-            log.debug("Updating ValidationJob for resource_id %s to status %s", resource_id, status)
             record.commit()
             log.info("ValidationJob for resource_id %s updated to status %s", resource_id, status)
-            log.info("ValidationJob record after update: %s", record)
             return record
         else:
             raise ValueError(f"No existing job found for resource_id {resource_id}")
@@ -95,8 +93,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
         record = cls.get_latest_job_for_resource(resource_id)
         if record:
             return record.status
-        else:
-            return None
+        return None
 
     def as_dict(self):
         return {

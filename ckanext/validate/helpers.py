@@ -10,9 +10,7 @@ def get_resource_validation_job_status(resource_dict):
     if not resource_id:
         return None
 
-    status = ValidationJob.get_latest_job_status_for_resource(resource_id)
-
-    return status
+    return ValidationJob.get_latest_job_status_for_resource(resource_id)
 
 
 def get_resource_validation_state(resource_dict):

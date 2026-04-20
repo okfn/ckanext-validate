@@ -10,8 +10,8 @@
       <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
     {% elif status == 'error' %}
       <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
-    {% else %}
-      <span class="validate-badge validate-badge--pending">{{ _('No Validated') }}</span>
+    {% elif status == 'pending' %}
+      <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
     {% endif %}
   {% endif %}
 {% endblock %}
