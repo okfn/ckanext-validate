@@ -14,11 +14,11 @@
       </div>
 
       {% if group['preview'] %}
-        <div class="validate-preview">
-          <table class="validate-preview__table">
+        <div class="validate-preview-scroll">
+          <table class="validate-preview-grid">
             <thead>
               <tr>
-                <th class="validate-preview__corner"></th>
+                <th class="validate-preview-grid__index"></th>
                 {% for column_number in group['preview']['column_numbers'] %}
                   <th>{{ column_number }}</th>
                 {% endfor %}
@@ -27,7 +27,9 @@
             <tbody>
               {% for preview_row in group['preview']['rows'] %}
                 <tr>
-                  <th>{{ preview_row['row_number'] or '-' }}</th>
+                  <th class="validate-preview-grid__index">
+                    {{ preview_row['row_number'] or '-' }}
+                  </th>
                   {% for cell in preview_row['cells'] %}
                     {% set column_number = loop.index %}
                     <td class="{% if column_number in preview_row['highlight_columns'] %}is-error{% endif %}">

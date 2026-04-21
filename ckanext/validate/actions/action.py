@@ -5,38 +5,11 @@ from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
+from ckanext.validate.helpers import collect_report_errors
 from ckanext.validate.model import Validation
 
 
 log = logging.getLogger(__name__)
-
-
-def _collect_report_errors(report):
-    descriptor = report.to_descriptor() or {}
-    errors = []
-
-    for task in descriptor.get("tasks", []):
-        errors.extend(task.get("errors", []))
-
-    if not report.valid and not errors:
-        errors.append(
-            {
-                "type": "structure-error",
-                "title": toolkit._("Structural validation error"),
-                "description": toolkit._(
-                    "The validator could not extract row-level errors from the report."
-                ),
-                "message": toolkit._("Structural validation error"),
-                "rowNumber": None,
-                "rowNumbers": [],
-                "fieldName": None,
-                "fieldNumber": None,
-                "cells": [],
-                "labels": [],
-            }
-        )
-
-    return errors
 
 
 def resource_validate(context, data_dict):
@@ -97,7 +70,7 @@ def resource_validate(context, data_dict):
     )
 
     status = "success" if report.valid else "failure"
-    error_details = _collect_report_errors(report)
+    error_details = collect_report_errors(report)
     error_count = len(error_details)
 
     Validation.create(
