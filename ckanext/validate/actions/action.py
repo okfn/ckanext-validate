@@ -11,6 +11,34 @@ from ckanext.validate.model import Validation
 log = logging.getLogger(__name__)
 
 
+def _collect_report_errors(report):
+    descriptor = report.to_descriptor() or {}
+    errors = []
+
+    for task in descriptor.get("tasks", []):
+        errors.extend(task.get("errors", []))
+
+    if not report.valid and not errors:
+        errors.append(
+            {
+                "type": "structure-error",
+                "title": toolkit._("Structural validation error"),
+                "description": toolkit._(
+                    "The validator could not extract row-level errors from the report."
+                ),
+                "message": toolkit._("Structural validation error"),
+                "rowNumber": None,
+                "rowNumbers": [],
+                "fieldName": None,
+                "fieldNumber": None,
+                "cells": [],
+                "labels": [],
+            }
+        )
+
+    return errors
+
+
 def resource_validate(context, data_dict):
     """Validate a CSV resource using frictionless and store the result.
 
@@ -62,28 +90,14 @@ def resource_validate(context, data_dict):
         "Frictionless validation completed for resource %s: valid=%s",
         resource_id, report.valid,
     )
+    log.debug(
+        "Validation report for resource %s: %s",
+        resource_id,
+        report.to_descriptor(),
+    )
 
     status = "success" if report.valid else "failure"
-
-    errors = []
-    for task in report.tasks:
-        errors.extend(task.errors)
-
-    error_details = [
-        {
-            "row": getattr(err, "row_number", None),
-            "field": getattr(err, "field_name", None),
-            "message": err.message,
-        }
-        for err in errors
-    ]
-
-    if not report.valid and not error_details:
-        error_details.append({
-            "message": toolkit._("Structural validation error"),
-            "code": "structure-error",
-        })
-
+    error_details = _collect_report_errors(report)
     error_count = len(error_details)
 
     Validation.create(

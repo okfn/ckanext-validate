@@ -1,5 +1,87 @@
 {% extends "page.html" %}
 
+{% macro render_error_groups(error_groups, error_row_limit) %}
+  {% for group in error_groups %}
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h4 style="margin-top: 0;">
+          {{ group.title }}
+          <span class="badge">{{ group.count }}</span>
+        </h4>
+
+        {% if group.description %}
+          <p class="text-muted">{{ group.description }}</p>
+        {% endif %}
+
+        {% if group.preview %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th></th>
+                  {% for column_number in group.preview.column_numbers %}
+                    <th>{{ column_number }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for preview_row in group.preview.rows %}
+                  <tr>
+                    <th>{{ preview_row.row_number or '-' }}</th>
+                    {% for cell in preview_row.cells %}
+                      {% set column_number = loop.index %}
+                      <td class="{% if column_number in preview_row.highlight_columns %}danger{% endif %}">
+                        {% if cell %}
+                          {{ cell }}
+                        {% else %}
+                          {{ '&nbsp;'|safe }}
+                        {% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+
+        <table class="table table-condensed table-bordered">
+          <thead>
+            <tr>
+              <th>{{ _('Row') }}</th>
+              <th>{{ _('Field') }}</th>
+              <th>{{ _('Message') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in group.items %}
+              <tr>
+                <td>{{ item.row_number or '-' }}</td>
+                <td>
+                  {% if item.field_name %}
+                    {{ item.field_name }}
+                  {% elif item.field_number %}
+                    {{ _('Column {0}').format(item.field_number) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>{{ item.message }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {% if group.truncated %}
+          <p class="help-block">
+            {{ _('Showing only the first {0} rows for this error type.').format(error_row_limit) }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+{% endmacro %}
+
 {% block subtitle %}{{ _('Validate File') }}{% endblock %}
 
 {% block styles %}
@@ -24,25 +106,9 @@
         <strong>{{ _('Invalid') }}</strong> &mdash;
         {{ errors | length }} {{ _('error(s) found in') }} <em>{{ filename }}</em>.
       </div>
-      {% if errors %}
-        <table class="table table-condensed table-bordered">
-          <thead>
-            <tr>
-              <th>{{ _('Row') }}</th>
-              <th>{{ _('Field') }}</th>
-              <th>{{ _('Message') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for err in errors %}
-            <tr>
-              <td>{{ err.row or '-' }}</td>
-              <td>{{ err.field or '-' }}</td>
-              <td>{{ err.message }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+
+      {% if error_groups %}
+        {{ render_error_groups(error_groups, error_row_limit) }}
       {% endif %}
     {% endif %}
   {% endif %}
