@@ -27,12 +27,16 @@ validate_test_file_blueprint = Blueprint(
 )
 def validate(package_id, resource_id):
     try:
-        pkg_dict = toolkit.get_action("package_show")({}, {"id": package_id})
+        pkg_dict = toolkit.get_action("package_show")(
+            {}, {"id": package_id}
+        )
     except toolkit.ObjectNotFound:
         base.abort(404, toolkit._("Package not found"))
 
     try:
-        resource = toolkit.get_action("resource_show")({}, {"id": resource_id})
+        resource = toolkit.get_action("resource_show")(
+            {}, {"id": resource_id}
+        )
     except toolkit.ObjectNotFound:
         base.abort(404, toolkit._("Resource not found"))
 
@@ -139,7 +143,7 @@ def test_file():
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
-            os.close(tmp_fd)
+            os.close(tmp_fd)  # TODO: check!
             success = True
 
     return base.render(
