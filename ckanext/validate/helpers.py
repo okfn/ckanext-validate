@@ -43,7 +43,7 @@ def collect_report_errors(report):
     return errors
 
 
-def normalize_error(error):
+def _normalize_error(error):
     row_numbers = list(error.get("rowNumbers") or [])
     row_number = error.get("rowNumber", error.get("row"))
 
@@ -69,15 +69,15 @@ def normalize_error(error):
     }
 
 
-def header_cells_from_items(items):
+def _header_cells_from_items(items):
     for item in items:
         if item["labels"]:
             return list(item["labels"])
     return []
 
 
-def preview_for_blank_label(items):
-    header_cells = header_cells_from_items(items)
+def _preview_for_blank_label(items):
+    header_cells = _header_cells_from_items(items)
     if not header_cells:
         return None
 
@@ -110,7 +110,7 @@ def preview_for_blank_label(items):
     }
 
 
-def preview_for_blank_row(items):
+def _preview_for_blank_row(items):
     max_columns = max(
         6,
         max((len(item["labels"]) for item in items), default=0),
@@ -133,7 +133,7 @@ def preview_for_blank_row(items):
     }
 
 
-def preview_for_general_rows(items):
+def _preview_for_general_rows(items):
     max_columns = max(
         1,
         max((len(item["labels"]) for item in items), default=0),
@@ -170,7 +170,7 @@ def preview_for_general_rows(items):
     }
 
 
-def build_error_preview(group):
+def _build_error_preview(group):
     items = group["items"]
     if not items:
         return None
@@ -178,19 +178,19 @@ def build_error_preview(group):
     error_type = group.get("type")
 
     if error_type == "blank-label":
-        return preview_for_blank_label(items)
+        return _preview_for_blank_label(items)
 
     if error_type == "blank-row":
-        return preview_for_blank_row(items)
+        return _preview_for_blank_row(items)
 
-    return preview_for_general_rows(items)
+    return _preview_for_general_rows(items)
 
 
 def group_validation_errors(errors, limit=MAX_ERROR_ROWS_PER_GROUP):
     groups = OrderedDict()
 
     for raw_error in errors or []:
-        item = normalize_error(raw_error)
+        item = _normalize_error(raw_error)
         key = item["type"] or item["title"] or item["message"]
 
         if key not in groups:
@@ -210,7 +210,7 @@ def group_validation_errors(errors, limit=MAX_ERROR_ROWS_PER_GROUP):
     result = []
     for group in groups.values():
         group["truncated"] = group["count"] > limit
-        group["preview"] = build_error_preview(group)
+        group["preview"] = _build_error_preview(group)
         result.append(group)
 
     return result
