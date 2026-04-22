@@ -33,7 +33,7 @@ class JobStatus(str, enum.Enum):
 
     @classmethod
     def error_statuses(cls):
-        return {cls.FAILED, cls.STOPPED, cls.CANCELED}
+        return {cls.FAILED, cls.STOPPED, cls.CANCELED, cls.ERROR}
 
 
 class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):

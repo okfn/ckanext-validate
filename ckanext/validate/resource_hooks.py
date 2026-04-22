@@ -3,6 +3,7 @@ import logging
 import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate import jobs
+from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +34,19 @@ def build_validation_job_id(resource_id):
 
 
 def enqueue_resource_validation_job(resource_id):
+    latest_status = ValidationJob.get_latest_job_status_for_resource(resource_id)
+
+    if latest_status in JobStatus.pending_statuses():
+        log.debug(
+            "Validation job already pending for resource %s (status=%s), skipping enqueue",
+            resource_id,
+            latest_status,
+        )
+        return None
+
+    # Crear el registro ANTES de encolar para que la UI pueda mostrar Pending
+    ValidationJob.create(resource_id=resource_id, status=JobStatus.QUEUED)
+
     try:
         return toolkit.enqueue_job(
             jobs.run_resource_validation_job,
@@ -41,6 +55,7 @@ def enqueue_resource_validation_job(resource_id):
             rq_kwargs={"job_id": build_validation_job_id(resource_id)},
         )
     except Exception:
+        # Mantener el estado queued si el job ya estaba en cola con el mismo job_id
         log.debug("Validation job already enqueued for resource %s, skipping", resource_id)
         return None
 
