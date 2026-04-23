@@ -1,7 +1,27 @@
+import pytest
+
 from ckanext.validate import helpers
 from ckanext.validate.model.validation import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.tests.conftest import status_value
+
+
+@pytest.mark.parametrize("job_status", list(JobStatus.error_statuses()))
+def test_get_resource_validation_state_returns_error_for_any_error_job_status(job_status):
+    resource_id = f"res-error-{job_status.value}"
+
+    ValidationJob.create(resource_id=resource_id, status=job_status)
+
+    assert helpers.get_resource_validation_state({"id": resource_id}) == "error"
+
+
+@pytest.mark.parametrize("job_status", list(JobStatus.pending_statuses()))
+def test_get_resource_validation_state_returns_pending_for_any_pending_job_status(job_status):
+    resource_id = f"res-pending-{job_status.value}"
+
+    ValidationJob.create(resource_id=resource_id, status=job_status)
+
+    assert helpers.get_resource_validation_state({"id": resource_id}) == "pending"
 
 
 def test_get_resource_validation_job_status_returns_none_without_resource():

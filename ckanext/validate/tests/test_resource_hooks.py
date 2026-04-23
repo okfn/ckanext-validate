@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 from ckanext.validate import jobs
 from ckanext.validate import resource_hooks
-from ckanext.validate.model.validation_jobs import JobStatus
+from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+from ckanext.validate.tests.conftest import status_value
 
 
 def test_enqueue_resource_validation_job_creates_db_job_and_enqueues_with_job_id_arg(monkeypatch):
@@ -177,3 +178,33 @@ def test_enqueue_resource_validation_job_skips_when_latest_job_is_pending(
 
     assert result is None
     assert calls == {"create": False, "enqueue": False}
+
+
+def test_enqueue_resource_validation_job_marks_created_job_as_error_in_db_when_enqueue_fails(
+    monkeypatch,
+):
+    created_job = ValidationJob.create(resource_id="res-enqueue-db-error", status="queued")
+
+    monkeypatch.setattr(
+        resource_hooks.ValidationJob,
+        "get_latest_job_status_for_resource",
+        lambda resource_id: None,
+    )
+    monkeypatch.setattr(
+        resource_hooks.ValidationJob,
+        "create",
+        lambda resource_id, status: SimpleNamespace(id=created_job.id),
+    )
+
+    def fake_enqueue_job(*args, **kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(resource_hooks.toolkit, "enqueue_job", fake_enqueue_job)
+
+    result = resource_hooks.enqueue_resource_validation_job("res-enqueue-db-error")
+
+    refreshed = ValidationJob.get(created_job.id)
+
+    assert result is None
+    assert status_value(refreshed.status) == "error"
+    assert refreshed.finish_timestamp is not None
