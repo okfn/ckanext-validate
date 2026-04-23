@@ -1,3 +1,5 @@
+import pytest
+
 from types import SimpleNamespace
 
 from ckanext.validate import jobs
@@ -148,3 +150,30 @@ def test_enqueue_resource_validation_job_returns_none_when_enqueue_fails(monkeyp
 
     assert resource_hooks.enqueue_resource_validation_job("res-1") is None
     assert updated == {"job_id": 1, "status": JobStatus.ERROR}
+
+
+@pytest.mark.parametrize("pending_status", list(JobStatus.pending_statuses()))
+def test_enqueue_resource_validation_job_skips_when_latest_job_is_pending(
+    monkeypatch, pending_status
+):
+    calls = {"create": False, "enqueue": False}
+
+    monkeypatch.setattr(
+        resource_hooks.ValidationJob,
+        "get_latest_job_status_for_resource",
+        lambda resource_id: pending_status,
+    )
+
+    def fake_create(*args, **kwargs):
+        calls["create"] = True
+
+    def fake_enqueue_job(*args, **kwargs):
+        calls["enqueue"] = True
+
+    monkeypatch.setattr(resource_hooks.ValidationJob, "create", fake_create)
+    monkeypatch.setattr(resource_hooks.toolkit, "enqueue_job", fake_enqueue_job)
+
+    result = resource_hooks.enqueue_resource_validation_job("res-pending")
+
+    assert result is None
+    assert calls == {"create": False, "enqueue": False}
