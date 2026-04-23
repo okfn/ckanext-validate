@@ -16,7 +16,7 @@ https://docs.ckan.org/en/2.11/maintaining/cli.html
 """
 
 
-def run_resource_validation_job(resource_id):
+def run_resource_validation_job(resource_id, job_id=None):
     """
     Execute validation in the background job and ensure the resource
     is updated with a final result, including the error case.
@@ -26,6 +26,17 @@ def run_resource_validation_job(resource_id):
     site_user = toolkit.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"ignore_auth": True, "user": site_user["name"]}
 
+    current_job = ValidationJob.get_latest_job_for_resource(resource_id)
+    # si el job existe finalizarlos/cancelarlos/terminarlos
+
+    if current_job and current_job.status in JobStatus.pending_statuses():
+        log.debug(
+            "Existing pending job found for resource %s (status=%s), marking as stopped",
+            resource_id,
+            current_job.status,
+        )
+        ValidationJob.update(resource_id=resource_id, status=JobStatus.STOPPED)
+ 
     try:
         ValidationJob.update(resource_id=resource_id, status=JobStatus.RUNNING)
     except ValueError:
@@ -38,6 +49,7 @@ def run_resource_validation_job(resource_id):
             {"id": resource_id},
         )
         log.info("Finished background validation for resource %s", resource_id)
+        # TODO: Mejorar esto para actualizar el job específico en vez de asumir que el último es el correcto
         ValidationJob.update(resource_id=resource_id, status=JobStatus.FINISHED)
 
     except Exception:
@@ -47,5 +59,6 @@ def run_resource_validation_job(resource_id):
         )
         try:
             ValidationJob.update(resource_id=resource_id, status=JobStatus.ERROR)
+        # TODO: Mejorar esto para actualizar el job específico en vez de asumir que el último es el correcto
         except ValueError:
             ValidationJob.create(resource_id=resource_id, status=JobStatus.ERROR)
