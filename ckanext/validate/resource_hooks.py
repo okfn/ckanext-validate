@@ -29,10 +29,6 @@ def is_resource_eligible_for_auto_validation(resource_dict):
     return True
 
 
-def build_validation_job_id(resource_id):
-    return f"validate-resource-{resource_id}"
-
-
 def enqueue_resource_validation_job(resource_id):
     latest_status = ValidationJob.get_latest_job_status_for_resource(resource_id)
 
@@ -45,14 +41,13 @@ def enqueue_resource_validation_job(resource_id):
         return None
 
     # Crear el registro ANTES de encolar para que la UI pueda mostrar Pending
-    ValidationJob.create(resource_id=resource_id, status=JobStatus.QUEUED)
+    job = ValidationJob.create(resource_id=resource_id, status=JobStatus.QUEUED)
 
     try:
         return toolkit.enqueue_job(
             jobs.run_resource_validation_job,
-            args=[resource_id],
+            args=[resource_id, job.id],
             title=f"Validate resource {resource_id}",
-            rq_kwargs={"job_id": build_validation_job_id(resource_id)},
         )
     except Exception:
         # Mantener el estado queued si el job ya estaba en cola con el mismo job_id
