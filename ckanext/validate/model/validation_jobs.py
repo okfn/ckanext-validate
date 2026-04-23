@@ -35,6 +35,16 @@ class JobStatus(str, enum.Enum):
     def error_statuses(cls):
         return {cls.FAILED, cls.STOPPED, cls.CANCELED, cls.ERROR}
 
+    @classmethod
+    def terminal_statuses(cls):
+        return {
+            cls.FINISHED,
+            cls.FAILED,
+            cls.STOPPED,
+            cls.CANCELED,
+            cls.ERROR,
+        }
+
 
 class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
     """Stores the status of each background validation job for a resource."""
@@ -61,23 +71,40 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
     def create(cls, resource_id, status):
         record = cls(
             resource_id=resource_id,
-            status=status,
+            status=status.value if isinstance(status, JobStatus) else status,
         )
         record.save()
         return record
 
     @classmethod
+    def get(cls, job_id):
+        return Session.query(cls).filter(cls.id == job_id).first()
+
+    @classmethod
     def update(cls, resource_id, status):
         record = cls.get_latest_job_for_resource(resource_id)
-        if record:
-            record.status = status
-            if status in (JobStatus.FINISHED, JobStatus.ERROR):
-                record.finish_timestamp = datetime.datetime.utcnow()
-            record.commit()
-            log.info("ValidationJob for resource_id %s updated to status %s", resource_id, status)
-            return record
-        else:
+        if not record:
             raise ValueError(f"No existing job found for resource_id {resource_id}")
+        return cls.update_by_id(record.id, status)
+
+    @classmethod
+    def update_by_id(cls, job_id, status):
+        record = cls.get(job_id)
+        if not record:
+            raise ValueError(f"No existing job found for job_id {job_id}")
+
+        record.status = status.value if isinstance(status, JobStatus) else status
+        if status in JobStatus.terminal_statuses():
+            record.finish_timestamp = datetime.datetime.utcnow()
+
+        record.commit()
+        log.info(
+            "ValidationJob id=%s for resource_id=%s updated to status=%s",
+            record.id,
+            record.resource_id,
+            status,
+        )
+        return record
 
     @classmethod
     def get_latest_job_for_resource(cls, resource_id):

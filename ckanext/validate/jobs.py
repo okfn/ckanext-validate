@@ -21,44 +21,51 @@ def run_resource_validation_job(resource_id, job_id=None):
     Execute validation in the background job and ensure the resource
     is updated with a final result, including the error case.
     """
-    log.info("Starting background validation for resource %s", resource_id)
+    log.info(
+        "Starting background validation for resource %s (job_id=%s)",
+        resource_id,
+        job_id,
+    )
 
     site_user = toolkit.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"ignore_auth": True, "user": site_user["name"]}
 
-    current_job = ValidationJob.get_latest_job_for_resource(resource_id)
-    # si el job existe finalizarlos/cancelarlos/terminarlos
-
-    if current_job and current_job.status in JobStatus.pending_statuses():
-        log.debug(
-            "Existing pending job found for resource %s (status=%s), marking as stopped",
-            resource_id,
-            current_job.status,
+    if job_id is not None:
+        try:
+            ValidationJob.update_by_id(job_id, JobStatus.RUNNING)
+        except ValueError:
+            # Fallback por si el registro no existiera por datos viejos o ejecución manual
+            current_job = ValidationJob.create(
+                resource_id=resource_id,
+                status=JobStatus.RUNNING,
+            )
+            job_id = current_job.id
+    else:
+        current_job = ValidationJob.create(
+            resource_id=resource_id,
+            status=JobStatus.RUNNING,
         )
-        ValidationJob.update(resource_id=resource_id, status=JobStatus.STOPPED)
- 
-    try:
-        ValidationJob.update(resource_id=resource_id, status=JobStatus.RUNNING)
-    except ValueError:
-        # Fallback por si el registro no existiera por datos viejos o ejecución manual
-        ValidationJob.create(resource_id=resource_id, status=JobStatus.RUNNING)
+        job_id = current_job.id
 
     try:
         toolkit.get_action("resource_validate")(
             context,
             {"id": resource_id},
         )
-        log.info("Finished background validation for resource %s", resource_id)
-        # TODO: Mejorar esto para actualizar el job específico en vez de asumir que el último es el correcto
-        ValidationJob.update(resource_id=resource_id, status=JobStatus.FINISHED)
+        log.info(
+            "Finished background validation for resource %s (job_id=%s)",
+            resource_id,
+            job_id,
+        )
+        ValidationJob.update_by_id(job_id, JobStatus.FINISHED)
 
     except Exception:
         log.exception(
-            "Background validation failed for resource %s",
+            "Background validation failed for resource %s (job_id=%s)",
             resource_id,
+            job_id,
         )
         try:
-            ValidationJob.update(resource_id=resource_id, status=JobStatus.ERROR)
-        # TODO: Mejorar esto para actualizar el job específico en vez de asumir que el último es el correcto
+            ValidationJob.update_by_id(job_id, JobStatus.ERROR)
         except ValueError:
             ValidationJob.create(resource_id=resource_id, status=JobStatus.ERROR)

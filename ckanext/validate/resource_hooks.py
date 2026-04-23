@@ -50,8 +50,8 @@ def enqueue_resource_validation_job(resource_id):
             title=f"Validate resource {resource_id}",
         )
     except Exception:
-        # Mantener el estado queued si el job ya estaba en cola con el mismo job_id
-        log.debug("Validation job already enqueued for resource %s, skipping", resource_id)
+        log.exception("Failed to enqueue validation job for resource %s", resource_id)
+        ValidationJob.update_by_id(job.id, JobStatus.ERROR)
         return None
 
 
