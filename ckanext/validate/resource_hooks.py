@@ -32,6 +32,8 @@ def is_resource_eligible_for_auto_validation(resource_dict):
 def enqueue_resource_validation_job(resource_id):
     latest_status = ValidationJob.get_latest_job_status_for_resource(resource_id)
 
+    # TODO: handel running jobs scenario
+
     if latest_status in JobStatus.pending_statuses():
         log.debug(
             "Validation job already pending for resource %s (status=%s), skipping enqueue",

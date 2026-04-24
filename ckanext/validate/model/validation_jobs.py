@@ -29,7 +29,11 @@ class JobStatus(str, enum.Enum):
 
     @classmethod
     def pending_statuses(cls):
-        return {cls.QUEUED, cls.STARTED, cls.DEFERRED, cls.SCHEDULED, cls.RUNNING}
+        return {cls.QUEUED, cls.STARTED, cls.DEFERRED, cls.SCHEDULED}
+
+    @classmethod
+    def running_statuses(cls):
+        return {cls.RUNNING}
 
     @classmethod
     def error_statuses(cls):
