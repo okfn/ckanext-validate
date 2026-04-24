@@ -29,3 +29,14 @@
   background-color: #6c757d;
   color: #fff;
 }
+
+.validate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.validate-badge i {
+  margin-right: 4px;
+}
+
