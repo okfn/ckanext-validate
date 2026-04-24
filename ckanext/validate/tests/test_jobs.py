@@ -85,16 +85,15 @@ def test_run_resource_validation_job_marks_error_when_validation_fails(monkeypat
     ]
 
 
-def test_run_resource_validation_job_creates_running_when_job_record_does_not_exist(monkeypatch):
-    captured = {}
+def test_run_resource_validation_job_returns_early_when_job_record_does_not_exist(monkeypatch):
+    resource_validate_called = []
     state_calls = []
 
     def fake_get_site_user(context, data_dict):
         return {"name": "site-user"}
 
     def fake_resource_validate(context, data_dict):
-        captured["context"] = context
-        captured["data_dict"] = data_dict
+        resource_validate_called.append(True)
         return {"id": "res-3"}
 
     def fake_get_action(name):
@@ -109,22 +108,12 @@ def test_run_resource_validation_job_creates_running_when_job_record_does_not_ex
         if status == JobStatus.RUNNING:
             raise ValueError("No existing job found for job_id")
 
-    def fake_create(resource_id, status):
-        state_calls.append(("create", resource_id, status))
-        return SimpleNamespace(id=999)
-
     monkeypatch.setattr(jobs.toolkit, "get_action", fake_get_action)
     monkeypatch.setattr(jobs.ValidationJob, "update_by_id", fake_update_by_id)
-    monkeypatch.setattr(jobs.ValidationJob, "create", fake_create)
 
     jobs.run_resource_validation_job("res-3", job_id=321)
 
-    assert captured == {
-        "context": {"ignore_auth": True, "user": "site-user"},
-        "data_dict": {"id": "res-3"},
-    }
+    assert resource_validate_called == []
     assert state_calls == [
         ("update_by_id", 321, JobStatus.RUNNING),
-        ("create", "res-3", JobStatus.RUNNING),
-        ("update_by_id", 999, JobStatus.FINISHED),
     ]
