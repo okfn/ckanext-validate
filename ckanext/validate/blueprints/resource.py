@@ -92,7 +92,7 @@ validate_test_file_blueprint = Blueprint(
 
 @validate_test_file_blueprint.route("/ckan-admin/testfile", methods=["GET", "POST"])
 def test_file():
-    if not toolkit.current_user.sysadmin:
+    if not getattr(toolkit.current_user, "sysadmin", False):
         base.abort(403, toolkit._("Need to be system administrator to administer"))
 
     errors = []
