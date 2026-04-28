@@ -148,8 +148,8 @@ class TestTestFileViewPost:
             status=200,
         )
 
-        assert "alert-success" in response
-        assert "alert-danger" not in response
+        assert "validate-badge--valid" in response
+        assert "validate-badge--invalid" not in response
         assert "data.csv" in response
 
     # --- frictionless validation: failure ---------------------------------
@@ -184,7 +184,7 @@ class TestTestFileViewPost:
             status=200,
         )
 
-        assert "alert-danger" in response
+        assert "validate-badge--invalid" in response
         assert "bad.csv" in response
         assert "price" in response
         assert "stock" in response
@@ -210,7 +210,7 @@ class TestTestFileViewPost:
             status=200,
         )
 
-        assert "alert-danger" in response
+        assert "validate-badge--invalid" in response
         assert "bad.csv" in response
         assert "Structural validation error" in response
 
