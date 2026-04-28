@@ -2,7 +2,7 @@
 
 {% block resource_item_title %}
   {{ super() }}
-  {% if h.check_access('sysadmin') or h.check_access('package_update', {'id': res.package_id}) %}
+  {% if (res.format and res.format|upper == 'CSV') and (h.check_access('sysadmin') or h.check_access('package_update', {'id': res.package_id})) %}
     {% set status = h.get_resource_validation_state(res) %}
     {% if status == 'success' %}
       <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
