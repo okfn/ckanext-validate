@@ -1,4 +1,4 @@
-{% extends "page.html" %}
+{% extends "admin/base.html" %}
 
 {% block subtitle %}{{ _('Validate File') }}{% endblock %}
 
@@ -49,7 +49,7 @@
 
   <div class="module module-narrow module-shallow">
     <div class="module-content">
-      <h3>{{ _('Upload CSV') }}</h3>
+      <h3>{{ _('Select a CSV File for Validation') }}</h3>
       <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group">
