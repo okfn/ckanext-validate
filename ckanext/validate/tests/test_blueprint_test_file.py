@@ -24,6 +24,7 @@ from unittest import mock
 from ckan.tests import factories
 
 from ckanext.validate.blueprints import resource as validate_resource
+from .conftest import DummyReport
 
 TEST_FILE_URL = "/ckan-admin/testfile"
 
@@ -134,18 +135,19 @@ class TestTestFileViewPost:
     def test_post_valid_csv_shows_success_alert(
         self, app, monkeypatch, auth_headers
     ):
-        report = SimpleNamespace(valid=True, tasks=[])
+        report = DummyReport(valid=True, tasks=[])
         _mock_frictionless(monkeypatch, report)
 
         data = {"file": (io.BytesIO(b"id,name\n1,Alice\n2,Bob\n"), "data.csv")}
+
         response = app.post(
             TEST_FILE_URL,
             data=data,
             headers=auth_headers,
             content_type="multipart/form-data",
+            status=200,
         )
 
-        assert response.status_code == 200
         assert "alert-success" in response
         assert "alert-danger" not in response
         assert "data.csv" in response
@@ -156,26 +158,32 @@ class TestTestFileViewPost:
         self, app, monkeypatch, auth_headers
     ):
         err1 = SimpleNamespace(
-            row_number=3, field_name="price", message="invalid type in price"
+            row_number=3,
+            field_name="price",
+            message="invalid type in price",
         )
         err2 = SimpleNamespace(
-            row_number=5, field_name="stock", message="missing required value"
+            row_number=5,
+            field_name="stock",
+            message="missing required value",
         )
-        report = SimpleNamespace(
+
+        report = DummyReport(
             valid=False,
             tasks=[SimpleNamespace(errors=[err1, err2])],
         )
         _mock_frictionless(monkeypatch, report)
 
         data = {"file": (io.BytesIO(b"id,price,stock\n1,bad,\n"), "bad.csv")}
+
         response = app.post(
             TEST_FILE_URL,
             data=data,
             headers=auth_headers,
             content_type="multipart/form-data",
+            status=200,
         )
 
-        assert response.status_code == 200
         assert "alert-danger" in response
         assert "bad.csv" in response
         assert "price" in response
@@ -186,23 +194,22 @@ class TestTestFileViewPost:
     def test_post_invalid_csv_without_task_errors_shows_structural_message(
         self, app, monkeypatch, auth_headers
     ):
-        """When the report is invalid but tasks carry no errors, the view
-        falls back to a generic structural-error message."""
-        report = SimpleNamespace(
+        report = DummyReport(
             valid=False,
             tasks=[SimpleNamespace(errors=[])],
         )
         _mock_frictionless(monkeypatch, report)
 
         data = {"file": (io.BytesIO(b"malformed"), "bad.csv")}
+
         response = app.post(
             TEST_FILE_URL,
             data=data,
             headers=auth_headers,
             content_type="multipart/form-data",
+            status=200,
         )
 
-        assert response.status_code == 200
         assert "alert-danger" in response
         assert "bad.csv" in response
         assert "Structural validation error" in response
