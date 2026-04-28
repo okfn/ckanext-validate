@@ -1,4 +1,4 @@
-{% extends "page.html" %}
+{% extends "admin/base.html" %}
 
 {% macro render_error_groups(error_groups, error_row_limit) %}
   {% for group in error_groups %}
@@ -113,7 +113,7 @@
 
   <div class="module module-narrow module-shallow">
     <div class="module-content">
-      <h3>{{ _('Upload CSV') }}</h3>
+      <h3>{{ _('Select a CSV File for Validation') }}</h3>
       <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group">
