@@ -11,7 +11,6 @@ log = logging.getLogger(__name__)
 
 validation_jobs_blueprint = Blueprint(
     "validate", __name__,
-    url_prefix="/validate"
 )
 
 
