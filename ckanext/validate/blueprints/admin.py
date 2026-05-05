@@ -10,7 +10,7 @@ from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 log = logging.getLogger(__name__)
 
 validation_jobs_blueprint = Blueprint(
-    "validate", __name__,
+    "validate_admin", __name__,
 )
 
 
