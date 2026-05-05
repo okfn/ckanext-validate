@@ -22,7 +22,10 @@ def get_resource_validation_state(resource_dict):
         return status
 
     job_status = get_resource_validation_job_status(resource_dict)
-    if job_status in JobStatus.pending_statuses():
+    if (
+        job_status in JobStatus.pending_statuses()
+        or job_status in JobStatus.running_statuses()
+    ):
         return "pending"
 
     if job_status in JobStatus.error_statuses():

@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block subtitle %}{{ _('Validation Jobs') }}{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  {% asset 'validate/validate-css' %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  <h1>{{ _('Validation Jobs') }}</h1>
+
+  <p class="text-muted">
+    {{ _('Latest CSV validation background jobs.') }}
+  </p>
+
+  <form method="get" class="form-inline" style="margin-bottom: 20px;">
+    <div class="form-group">
+      <label for="status">{{ _('Status') }}</label>
+      <select name="status" id="status" class="form-control">
+        <option value="">{{ _('All') }}</option>
+        {% for status in available_statuses %}
+          <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+            {{ status }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-filter"></i>
+      {{ _('Filter') }}
+    </button>
+
+    {% if selected_status %}
+      <a href="{{ h.url_for('validate.validation_jobs') }}" class="btn btn-default">
+        {{ _('Clear') }}
+      </a>
+    {% endif %}
+  </form>
+
+  {% if jobs %}
+    <table class="table table-condensed table-bordered">
+      <thead>
+        <tr>
+          <th>{{ _('ID') }}</th>
+          <th>{{ _('Resource ID') }}</th>
+          <th>{{ _('Status') }}</th>
+          <th>{{ _('Created') }}</th>
+          <th>{{ _('Finished') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+          <tr>
+            <td>{{ job.id }}</td>
+            <td><code>{{ job.resource_id }}</code></td>
+            <td>
+              {% if job.status in ['queued', 'started', 'deferred', 'scheduled', 'running'] %}
+                <span class="validate-badge validate-badge--pending">
+                  {% if job.status == 'running' %}
+                    <i class="fa fa-spinner fa-spin"></i>
+                  {% endif %}
+                  {{ job.status }}
+                </span>
+              {% elif job.status == 'finished' %}
+                <span class="validate-badge validate-badge--valid">{{ job.status }}</span>
+              {% elif job.status in ['failed', 'stopped', 'canceled', 'error'] %}
+                <span class="validate-badge validate-badge--error">{{ job.status }}</span>
+              {% else %}
+                <span class="validate-badge">{{ job.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ job.created or '-' }}</td>
+            <td>{{ job.finished or '-' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      {{ _('No validation jobs found from the selected status.') }}
+      {% if selected_status %} <b>{{ selected_status }}</b>{% endif %}
+    </div>
+  {% endif %}
+{% endblock %}
