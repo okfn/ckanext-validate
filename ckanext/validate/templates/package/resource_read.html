@@ -21,6 +21,11 @@
               <i class="fa fa-spinner fa-spin"></i>
               {{ _('Pending') }}
             </span>
+          {% elif status == 'running' %}
+            <span class="validate-badge validate-badge--running">
+              <i class="fa fa-spinner fa-spin"></i>
+              {{ _('Running') }}
+            </span>
           {% else %}
             <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
           {% endif %}

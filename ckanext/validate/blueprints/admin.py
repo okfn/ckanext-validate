@@ -33,10 +33,27 @@ def validation_jobs():
         limit=100,
     )
 
+    resource_show = toolkit.get_action("resource_show")
+    context = {"ignore_auth": True}
+
+    def _enrich(job_dict):
+        try:
+            resource = resource_show(context, {"id": job_dict["resource_id"]})
+            job_dict["resource_name"] = resource.get("name") or resource.get("description") or job_dict["resource_id"]
+            job_dict["resource_url"] = toolkit.url_for(
+                "resource.read",
+                id=resource["package_id"],
+                resource_id=job_dict["resource_id"],
+            )
+        except toolkit.ObjectNotFound:
+            job_dict["resource_name"] = job_dict["resource_id"]
+            job_dict["resource_url"] = None
+        return job_dict
+
     return base.render(
         "admin/validation_jobs.html",
         extra_vars={
-            "jobs": [job.as_dict() for job in jobs],
+            "jobs": [_enrich(job.as_dict()) for job in jobs],
             "available_statuses": available_statuses,
             "selected_status": selected_status,
         },

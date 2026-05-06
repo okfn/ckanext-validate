@@ -44,7 +44,7 @@
       <thead>
         <tr>
           <th>{{ _('ID') }}</th>
-          <th>{{ _('Resource ID') }}</th>
+          <th>{{ _('Resource') }}</th>
           <th>{{ _('Status') }}</th>
           <th>{{ _('Created') }}</th>
           <th>{{ _('Finished') }}</th>
@@ -54,7 +54,13 @@
         {% for job in jobs %}
           <tr>
             <td>{{ job.id }}</td>
-            <td><code>{{ job.resource_id }}</code></td>
+            <td>
+              {% if job.resource_url %}
+                <a href="{{ job.resource_url }}" target="_blank" rel="noopener noreferrer">{{ job.resource_name }}</a>
+              {% else %}
+                <code>{{ job.resource_name }}</code>
+              {% endif %}
+            </td>
             <td>
               {% if job.status in ['queued', 'started', 'deferred', 'scheduled', 'running'] %}
                 <span class="validate-badge validate-badge--pending">

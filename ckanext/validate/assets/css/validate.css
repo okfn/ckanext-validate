@@ -30,6 +30,11 @@
   color: #fff;
 }
 
+.validate-badge--running {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
 .validate-badge {
   display: inline-flex;
   align-items: center;
