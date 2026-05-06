@@ -18,7 +18,20 @@ class DummyReport:
         self.tasks = tasks or []
 
     def to_descriptor(self):
-        return {"valid": self.valid}
+        tasks = []
+        for task in self.tasks:
+            errors = []
+            for e in (task.errors if hasattr(task, "errors") else []):
+                if isinstance(e, dict):
+                    errors.append(e)
+                else:
+                    errors.append({
+                        "rowNumber": getattr(e, "row_number", None),
+                        "fieldName": getattr(e, "field_name", None),
+                        "message": getattr(e, "message", ""),
+                    })
+            tasks.append({"errors": errors})
+        return {"valid": self.valid, "tasks": tasks}
 
 
 class DummyResource:

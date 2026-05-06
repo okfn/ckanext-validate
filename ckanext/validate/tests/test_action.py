@@ -100,8 +100,8 @@ def test_resource_validate_collects_task_errors(monkeypatch):
     assert record.status == "failure"
     assert record.error_count == 2
     assert record.errors == [
-        {"row": 3, "field": "price", "message": "type error"},
-        {"row": 6, "field": "stock", "message": "constraint error"},
+        {"rowNumber": 3, "fieldName": "price", "message": "type error"},
+        {"rowNumber": 6, "fieldName": "stock", "message": "constraint error"},
     ]
 
 
@@ -130,8 +130,16 @@ def test_resource_validate_adds_structural_error_when_report_has_no_task_errors(
     assert record.error_count == 1
     assert record.errors == [
         {
+            "type": "structure-error",
+            "title": "Structural validation error",
+            "description": "The validator could not extract row-level errors from the report.",
             "message": "Structural validation error",
-            "code": "structure-error",
+            "rowNumber": None,
+            "rowNumbers": [],
+            "fieldName": None,
+            "fieldNumber": None,
+            "cells": [],
+            "labels": [],
         }
     ]
 
@@ -247,7 +255,7 @@ def test_resource_validate_with_bike_errors_fixture():
         (
             err
             for err in (record.errors or [])
-            if str(err.get("row", "")) == "22"
+            if err.get("rowNumber") == 22
             and "blank" in err.get("message", "").lower()
         ),
         None,
@@ -276,4 +284,4 @@ def test_resource_validate_with_so_wrong_fixture():
 
     messages = [err.get("message", "").lower() for err in (record.errors or [])]
     assert any("header" in msg or "label in the header" in msg for msg in messages)
-    assert any(str(err.get("row", "")) == "5" for err in (record.errors or []))
+    assert any(err.get("rowNumber") == 5 for err in (record.errors or []))

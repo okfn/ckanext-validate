@@ -2,11 +2,6 @@
 
 {% block subtitle %}{{ _('Validate File') }}{% endblock %}
 
-{% block styles %}
-  {{ super() }}
-  {% asset 'validate/validate-css' %}
-{% endblock %}
-
 {% block primary_content_inner %}
   <h1>{{ _('Validate a CSV File') }}</h1>
   <p class="text-muted">
@@ -14,36 +9,28 @@
   </p>
 
   {% if success %}
-    {% if report_valid %}
-      <div class="alert alert-success">
-        <strong>{{ _('Valid') }}</strong> &mdash;
-        {{ _('No errors found in') }} <em>{{ filename }}</em>.
+    <section class="validate-summary">
+      <div class="validate-summary__top">
+        <h2 class="validate-summary__title">{{ _('Current Status') }}</h2>
+        {% if report_valid %}
+          <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
+        {% else %}
+          <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
+        {% endif %}
       </div>
-    {% else %}
-      <div class="alert alert-danger">
-        <strong>{{ _('Invalid') }}</strong> &mdash;
-        {{ errors | length }} {{ _('error(s) found in') }} <em>{{ filename }}</em>.
-      </div>
-      {% if errors %}
-        <table class="table table-condensed table-bordered">
-          <thead>
-            <tr>
-              <th>{{ _('Row') }}</th>
-              <th>{{ _('Field') }}</th>
-              <th>{{ _('Message') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for err in errors %}
-            <tr>
-              <td>{{ err.row or '-' }}</td>
-              <td>{{ err.field or '-' }}</td>
-              <td>{{ err.message }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      {% if report_valid %}
+        <p class="validate-summary__text">{{ _('No errors found in') }} <em>{{ filename }}</em>.</p>
+      {% else %}
+        <p class="validate-summary__text">
+          <strong>{{ errors | length }}</strong> {{ _('error(s) found in') }} <em><b>{{ filename }}</b></em>.
+        </p>
       {% endif %}
+    </section>
+
+    {% if not report_valid and error_groups %}
+      <div class="validate-errors">
+        {% snippet 'validate/snippets/error_groups.html', error_groups=error_groups, error_row_limit=error_row_limit %}
+      </div>
     {% endif %}
   {% endif %}
 

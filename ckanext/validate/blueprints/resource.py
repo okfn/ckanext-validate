@@ -8,6 +8,7 @@ from frictionless import Resource, system
 from ckan.lib import base
 from ckan.plugins import toolkit
 
+from ckanext.validate import helpers as h
 from ckanext.validate.model.validation import Validation
 
 log = logging.getLogger(__name__)
@@ -59,9 +60,13 @@ def validate(package_id, resource_id):
         if not errors:
             record = Validation.get_latest(resource_id)
             if record and record.status == "success":
-                toolkit.h.flash_success(toolkit._("Validation completed. No errors found."))
+                toolkit.h.flash_success(
+                    toolkit._("Validation completed. No errors found.")
+                )
             elif record and record.status == "failure":
-                msg = toolkit._("Validation completed. {} errors found.").format(record.error_count)
+                msg = toolkit._("Validation completed. {} errors found.").format(
+                    record.error_count
+                )
                 toolkit.h.flash_error(msg)
             else:
                 toolkit.h.flash_success(toolkit._("Validation completed."))
@@ -69,6 +74,7 @@ def validate(package_id, resource_id):
     record = Validation.get_latest(resource_id)
     validation_errors = record.errors if record else []
     validation_error_count = record.error_count if record else 0
+    validation_error_groups = h.group_validation_errors(validation_errors)
 
     return base.render(
         "package/resource_validate.html",
@@ -81,6 +87,8 @@ def validate(package_id, resource_id):
             "errors": errors,
             "validation_errors": validation_errors or [],
             "validation_error_count": validation_error_count,
+            "validation_error_groups": validation_error_groups,
+            "error_row_limit": h.MAX_ERROR_ROWS_PER_GROUP,
         },
     )
 
@@ -96,6 +104,7 @@ def test_file():
         base.abort(403, toolkit._("Need to be system administrator to administer"))
 
     errors = []
+    error_groups = []
     report_valid = None
     filename = None
     success = False
@@ -127,19 +136,8 @@ def test_file():
                 report = res.validate()
 
             report_valid = report.valid
-
-            for task in report.tasks:
-                for err in task.errors:
-                    errors.append({
-                        "row": getattr(err, "row_number", None),
-                        "field": getattr(err, "field_name", None),
-                        "message": err.message,
-                    })
-
-            if not report.valid and not errors:
-                errors.append({
-                    "message": toolkit._("Structural validation error"),
-                })
+            errors = h.collect_report_errors(report)
+            error_groups = h.group_validation_errors(errors)
 
         except Exception as exc:
             log.exception("Error validating uploaded file")
@@ -160,6 +158,8 @@ def test_file():
         "validate/test_file.html",
         extra_vars={
             "errors": errors,
+            "error_groups": error_groups,
+            "error_row_limit": h.MAX_ERROR_ROWS_PER_GROUP,
             "report_valid": report_valid,
             "filename": filename,
             "success": success,
