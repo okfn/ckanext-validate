@@ -1,17 +1,15 @@
 {% extends "package/base.html" %}
 
 {% block primary_content_inner %}
-  <h1>{{ _('Resource Validation') }}</h1>
-  <p class="text-muted">{{ res.name or res.url }}</p>
-
-  {% if errors %}
-    <div class="alert alert-danger">
-      {% for key, msgs in errors.items() %}
-        <p><strong>{{ key }}:</strong> {{ msgs | join(', ') }}</p>
-      {% endfor %}
+  <div class="validate-page">
+    <div class="validate-page__header">
+      <div>
+        <h1 class="validate-page__title">{{ _('Resource Validation') }}</h1>
+        <p class="validate-page__subtitle"><b>{{ res.name or res.url }}</b></p>
+      </div>
     </div>
-  {% endif %}
 
+<<<<<<< 36-view-admin-status-jobs
     {# Current status badge #}
   <div class="module module-narrow module-shallow">
     <div class="module-content">
@@ -30,51 +28,62 @@
           {{ _('Running') }}
         </span>
         <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
+=======
+    {% if errors %}
+      <div class="alert alert-danger">
+        {% for key, msgs in errors.items() %}
+          <p><strong>{{ key }}:</strong> {{ msgs | join(', ') }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+>>>>>>> main
 
+    {% set status = h.get_resource_validation_state(res) %}
+
+    <section class="validate-summary">
+      <div class="validate-summary__top">
+        <h2 class="validate-summary__title">{{ _('Current Status') }}</h2>
+
+        {% if status == 'pending' %}
+          <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+        {% elif status == 'success' %}
+          <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
+        {% elif status == 'failure' %}
+          <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
+        {% elif status == 'error' %}
+          <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
+        {% else %}
+          <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
+        {% endif %}
+      </div>
+
+      {% if status == 'pending' %}
+        <p class="validate-summary__text">{{ _('Validation is running in the background.') }}</p>
       {% elif status == 'success' %}
-        <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
-
+        <p class="validate-summary__text">{{ _('No errors found for this resource.') }}</p>
       {% elif status == 'failure' %}
-        <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-          {% if validation_error_count %}
-          <p class="mt-2"><strong>{{ validation_error_count }} {{ _('errors detected') }}</strong></p>
-        {% endif %}
-        {% if validation_errors %}
-          <table class="table table-condensed table-bordered mt-2">
-            <thead>
-              <tr>
-                <th>{{ _('Row') }}</th>
-                <th>{{ _('Field') }}</th>
-                <th>{{ _('Message') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for err in validation_errors %}
-              <tr>
-                <td>{{ err.row or '-' }}</td>
-                <td>{{ err.field or '-' }}</td>
-                <td>{{ err.message }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        {% endif %}
-
+        <p class="validate-summary__text">
+          <strong>{{ validation_error_count }}</strong> {{ _('errors detected') }}
+        </p>
       {% elif status == 'error' %}
-        <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
-        <p class="mt-2">{{ _('An error occurred while running the validator.') }}</p>
-      {% else %}
-        <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
+        <p class="validate-summary__text">{{ _('An error occurred while running the validator.') }}</p>
       {% endif %}
+    </section>
+
+    {% if validation_error_groups %}
+      <div class="validate-errors">
+        {% snippet 'validate/snippets/error_groups.html', error_groups=validation_error_groups, error_row_limit=error_row_limit %}
+      </div>
+    {% endif %}
+
+    <div class="validate-actions">
+      <form method="post" action="{{ h.url_for('resource_validate.validate', package_id=pkg_dict.name, resource_id=res.id) }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-primary validate-actions__button">
+          <i class="fa fa-check-circle"></i>
+          {{ _('Run Validation') }}
+        </button>
+      </form>
     </div>
   </div>
-
-{# Run validation button #}
-  <form method="post" action="{{ h.url_for('resource_validate.validate', package_id=pkg_dict.name, resource_id=res.id) }}">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
-    <button type="submit" class="btn btn-primary">
-      <i class="fa fa-check-circle"></i>
-      {{ _('Run Validation') }}
-    </button>
-  </form>
 {% endblock %}

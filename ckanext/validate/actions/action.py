@@ -5,6 +5,7 @@ from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
+from ckanext.validate.helpers import collect_report_errors
 from ckanext.validate.model import Validation
 
 
@@ -62,28 +63,14 @@ def resource_validate(context, data_dict):
         "Frictionless validation completed for resource %s: valid=%s",
         resource_id, report.valid,
     )
+    log.debug(
+        "Validation report for resource %s: %s",
+        resource_id,
+        report.to_descriptor(),
+    )
 
     status = "success" if report.valid else "failure"
-
-    errors = []
-    for task in report.tasks:
-        errors.extend(task.errors)
-
-    error_details = [
-        {
-            "row": getattr(err, "row_number", None),
-            "field": getattr(err, "field_name", None),
-            "message": err.message,
-        }
-        for err in errors
-    ]
-
-    if not report.valid and not error_details:
-        error_details.append({
-            "message": toolkit._("Structural validation error"),
-            "code": "structure-error",
-        })
-
+    error_details = collect_report_errors(report)
     error_count = len(error_details)
 
     Validation.create(
