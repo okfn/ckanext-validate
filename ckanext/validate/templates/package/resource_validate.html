@@ -9,7 +9,6 @@
       </div>
     </div>
 
-<<<<<<< 36-view-admin-status-jobs
     {# Current status badge #}
   <div class="module module-narrow module-shallow">
     <div class="module-content">
@@ -28,7 +27,6 @@
           {{ _('Running') }}
         </span>
         <p class="mt-2">{{ _('Validation is running in the background.') }}</p>
-=======
     {% if errors %}
       <div class="alert alert-danger">
         {% for key, msgs in errors.items() %}
@@ -36,7 +34,6 @@
         {% endfor %}
       </div>
     {% endif %}
->>>>>>> main
 
     {% set status = h.get_resource_validation_state(res) %}
 
