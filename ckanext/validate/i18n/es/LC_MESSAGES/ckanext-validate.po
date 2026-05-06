@@ -1,0 +1,91 @@
+# Spanish translations for ckanext-validate.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the ckanext-validate project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ckanext-validate 0.1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: es\n"
+"Language-Team: es <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.15.0\n"
+
+#: ckanext/validate/helpers.py:29
+msgid "Structural validation error"
+msgstr "Error de validación estructural"
+
+#: ckanext/validate/helpers.py:59
+msgid "Validation error"
+msgstr "Error de validación"
+
+#: ckanext/validate/helpers.py:62
+msgid "Unknown validation error"
+msgstr "Error de validación desconocido"
+
+#: ckanext/validate/auth/validation.py:9
+msgid "Not authorized to validate this resource"
+msgstr "No autorizado para validar este recurso"
+
+#: ckanext/validate/auth/validation.py:18
+msgid "Not authorized to view this resource"
+msgstr "No autorizado para ver este recurso"
+
+#: ckanext/validate/blueprints/resource.py:34
+msgid "Package not found"
+msgstr "Paquete no encontrado"
+
+#: ckanext/validate/blueprints/resource.py:41
+msgid "Resource not found"
+msgstr "Recurso no encontrado"
+
+#: ckanext/validate/blueprints/resource.py:58
+msgid "Not authorized to validate this resource"
+msgstr "No autorizado para validar este recurso"
+
+#: ckanext/validate/blueprints/resource.py:64
+msgid "Validation completed. No errors found."
+msgstr "Validación completada. No se encontraron errores."
+
+#: ckanext/validate/blueprints/resource.py:67
+msgid "Validation completed. {} errors found."
+msgstr "Validación completada. Se encontraron {} errores."
+
+#: ckanext/validate/blueprints/resource.py:72
+msgid "Validation completed."
+msgstr "Validación completada."
+
+#: ckanext/validate/blueprints/resource.py:104
+msgid "Need to be system administrator to administer"
+msgstr "Debe ser administrador del sistema para administrar"
+
+#: ckanext/validate/blueprints/resource.py:116
+msgid "Please select a CSV file to validate."
+msgstr "Por favor seleccione un archivo CSV para validar."
+
+#: ckanext/validate/blueprints/resource.py:124
+msgid "Only CSV files are supported."
+msgstr "Solo se admiten archivos CSV."
+
+#: ckanext/validate/blueprints/resource.py:145
+msgid "System error during validation: {0}"
+msgstr "Error del sistema durante la validación: {0}"
+
+#: ckanext/validate/actions/action.py:31
+msgid "Only CSV resources can be validated."
+msgstr "Solo se pueden validar recursos CSV."
+
+#: ckanext/validate/actions/action.py:59
+msgid "System error: {0}"
+msgstr "Error del sistema: {0}"
+
+#: ckanext/validate/actions/action.py:107
+msgid "No validation found for resource {0}"
+msgstr "No se encontró validación para el recurso {0}"

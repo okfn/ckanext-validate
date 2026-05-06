@@ -2,6 +2,7 @@ import logging
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
+from ckan.lib.plugins import DefaultTranslation
 
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
@@ -13,13 +14,14 @@ from ckanext.validate import helpers as h
 log = logging.getLogger(__name__)
 
 
-class ValidatePlugin(plugins.SingletonPlugin):
+class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IResourceController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
+    plugins.implements(plugins.ITranslation)
 
     # IConfigurer
 
@@ -27,6 +29,14 @@ class ValidatePlugin(plugins.SingletonPlugin):
         toolkit.add_template_directory(config_, "templates")
         toolkit.add_public_directory(config_, "public")
         toolkit.add_resource("assets", "validate")
+
+    # ITranslation
+
+    def i18n_locales(self):
+        return ["es", "en"]
+
+    def i18n_domain(self):
+        return "ckanext-validate"
 
     # IActions
 
