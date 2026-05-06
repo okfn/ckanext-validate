@@ -1,14 +1,15 @@
 # Translations template for ckanext-validate.
-# Copyright (C) 2024 ORGANIZATION
-# This file is distributed under the same license as the ckanext-validate project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the ckanext-validate
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-validate 0.1\n"
+"Project-Id-Version: ckanext-validate 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"POT-Creation-Date: 2026-05-06 14:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +18,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.15.0\n"
 
-#: ckanext/validate/helpers.py:29
+#: ckanext/validate/helpers.py:29 ckanext/validate/helpers.py:33
 msgid "Structural validation error"
+msgstr ""
+
+#: ckanext/validate/helpers.py:30
+msgid "The validator could not extract row-level errors from the report."
 msgstr ""
 
 #: ckanext/validate/helpers.py:59
@@ -29,7 +34,19 @@ msgstr ""
 msgid "Unknown validation error"
 msgstr ""
 
-#: ckanext/validate/auth/validation.py:9
+#: ckanext/validate/actions/action.py:31
+msgid "Only CSV resources can be validated."
+msgstr ""
+
+#: ckanext/validate/actions/action.py:59
+msgid "System error: {0}"
+msgstr ""
+
+#: ckanext/validate/actions/action.py:107
+msgid "No validation found for resource {0}"
+msgstr ""
+
+#: ckanext/validate/auth/validation.py:9 ckanext/validate/blueprints/resource.py:58
 msgid "Not authorized to validate this resource"
 msgstr ""
 
@@ -43,10 +60,6 @@ msgstr ""
 
 #: ckanext/validate/blueprints/resource.py:41
 msgid "Resource not found"
-msgstr ""
-
-#: ckanext/validate/blueprints/resource.py:58
-msgid "Not authorized to validate this resource"
 msgstr ""
 
 #: ckanext/validate/blueprints/resource.py:64
@@ -77,14 +90,125 @@ msgstr ""
 msgid "System error during validation: {0}"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:31
-msgid "Only CSV resources can be validated."
+#: ckanext/validate/templates/admin/base.html:5
+#: ckanext/validate/templates/validate/test_file.html:3
+msgid "Validate File"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:59
-msgid "System error: {0}"
+#: ckanext/validate/templates/package/resource_read.html:11
+#: ckanext/validate/templates/validate/test_file.html:48
+msgid "Validate"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:107
-msgid "No validation found for resource {0}"
+#: ckanext/validate/templates/package/resource_read.html:14
+#: ckanext/validate/templates/package/resource_validate.html:29
+#: ckanext/validate/templates/package/snippets/resource_item.html:8
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:5
+#: ckanext/validate/templates/validate/test_file.html:16
+msgid "Valid"
 msgstr ""
+
+#: ckanext/validate/templates/package/resource_read.html:16
+#: ckanext/validate/templates/package/resource_validate.html:31
+#: ckanext/validate/templates/package/snippets/resource_item.html:10
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:7
+#: ckanext/validate/templates/validate/test_file.html:18
+msgid "Invalid"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_read.html:18
+#: ckanext/validate/templates/package/resource_validate.html:33
+#: ckanext/validate/templates/package/snippets/resource_item.html:12
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:9
+msgid "Error"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_read.html:22
+#: ckanext/validate/templates/package/resource_validate.html:27
+#: ckanext/validate/templates/package/snippets/resource_item.html:16
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:13
+msgid "Pending"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_read.html:25
+#: ckanext/validate/templates/package/resource_validate.html:35
+#: ckanext/validate/templates/package/snippets/resource_item.html:19
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:16
+msgid "Not validated"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:7
+msgid "Resource Validation"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:24
+#: ckanext/validate/templates/validate/test_file.html:14
+msgid "Current Status"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:40
+msgid "Validation is running in the background."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:42
+msgid "No errors found for this resource."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:45
+msgid "errors detected"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:48
+msgid "An error occurred while running the validator."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:63
+msgid "Run Validation"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:6
+msgid "Validate a CSV File"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:8
+msgid ""
+"Upload a CSV file to check it for errors. The file will not be saved or "
+"linked to any dataset."
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:22
+msgid "No errors found in"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:25
+msgid "error(s) found in"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:39
+msgid "Select a CSV File for Validation"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:43
+msgid "CSV File"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/error_groups.html:45
+msgid "Occurrences"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/error_groups.html:50
+msgid "Row"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/error_groups.html:52
+msgid "Field"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/error_groups.html:54
+msgid "Column"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/error_groups.html:66
+msgid "Showing only the first {0} rows for this error type."
+msgstr ""
+
