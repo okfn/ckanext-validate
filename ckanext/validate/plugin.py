@@ -34,6 +34,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
         return {
             "resource_validate": validate_action.resource_validate,
             "resource_validation_show": validate_action.resource_validation_show,
+            "validation_job_list": validate_action.validation_job_list,
         }
 
     # IAuthFunctions
@@ -42,6 +43,7 @@ class ValidatePlugin(plugins.SingletonPlugin):
         return {
             "resource_validate": validate_auth.resource_validate,
             "resource_validation_show": validate_auth.resource_validation_show,
+            "validation_job_list": validate_auth.validation_job_list,
         }
 
     # IBlueprint

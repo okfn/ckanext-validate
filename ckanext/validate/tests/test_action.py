@@ -4,10 +4,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from ckan.plugins import toolkit
-from ckan.tests import factories
+from ckan.tests import factories, helpers
 
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.model.validation import Validation
+from ckanext.validate.model.validation_jobs import ValidationJob
 from .conftest import DummyUploader, DummyReport, DummyResource
 
 FIXTURES_DIR = Path(__file__).parent / "files_test"
@@ -285,3 +286,76 @@ def test_resource_validate_with_so_wrong_fixture():
     messages = [err.get("message", "").lower() for err in (record.errors or [])]
     assert any("header" in msg or "label in the header" in msg for msg in messages)
     assert any(err.get("rowNumber") == 5 for err in (record.errors or []))
+
+
+# ---------------------------------------------------------------------------
+# validation_job_list
+# ---------------------------------------------------------------------------
+
+def test_validation_job_list_returns_all_jobs():
+    resource = factories.Resource(format="CSV")
+
+    ValidationJob.create(resource_id=resource["id"], status="finished")
+    ValidationJob.create(resource_id=resource["id"], status="failed")
+
+    result = helpers.call_action("validation_job_list")
+
+    assert len(result) == 2
+    assert {r["status"] for r in result} == {"finished", "failed"}
+
+
+def test_validation_job_list_filters_by_status():
+    resource = factories.Resource(format="CSV")
+
+    ValidationJob.create(resource_id=resource["id"], status="finished")
+    ValidationJob.create(resource_id=resource["id"], status="failed")
+
+    result = helpers.call_action("validation_job_list", status="finished")
+
+    assert len(result) == 1
+    assert result[0]["status"] == "finished"
+
+
+def test_validation_job_list_rejects_invalid_status():
+    with pytest.raises(toolkit.ValidationError) as exc:
+        helpers.call_action("validation_job_list", status="nonexistent")
+
+    assert "status" in exc.value.error_dict
+
+
+def test_validation_job_list_rejects_non_integer_limit():
+    with pytest.raises(toolkit.ValidationError) as exc:
+        helpers.call_action("validation_job_list", limit="abc")
+
+    assert "limit" in exc.value.error_dict
+
+
+def test_validation_job_list_rejects_out_of_range_limit():
+    with pytest.raises(toolkit.ValidationError) as exc:
+        helpers.call_action("validation_job_list", limit=9999)
+
+    assert "limit" in exc.value.error_dict
+
+
+def test_validation_job_list_raises_not_authorized(monkeypatch):
+    def fake_check_access(name, context, data_dict):
+        raise toolkit.NotAuthorized()
+
+    monkeypatch.setattr(validate_action.toolkit, "check_access", fake_check_access)
+
+    with pytest.raises(toolkit.NotAuthorized):
+        validate_action.validation_job_list({}, {})
+
+
+def test_validation_job_list_returns_expected_fields():
+    resource = factories.Resource(format="CSV")
+
+    ValidationJob.create(resource_id=resource["id"], status="finished")
+
+    result = helpers.call_action("validation_job_list")
+
+    assert len(result) == 1
+    job = result[0]
+    assert set(job.keys()) == {"id", "resource_id", "status", "created", "finished"}
+    assert job["resource_id"] == resource["id"]
+    assert job["status"] == "finished"
