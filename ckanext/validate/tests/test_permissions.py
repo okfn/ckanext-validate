@@ -1,53 +1,64 @@
-
 import pytest
-import ckan.plugins.toolkit as toolkit
+
+from ckan.tests import factories
+
+from ckanext.validate.model.validation import Validation
+from ckanext.validate import resource_hooks
 
 
-def can_show_validation_controls(package_id):
-    """
-    Replica la regla actual de los templates:
-    mostrar badges / botón Validate si es sysadmin
-    o si tiene package_update sobre el dataset.
-    """
-    return (
-        toolkit.check_access("sysadmin", {}, {})
-        or toolkit.check_access("package_update", {}, {"id": package_id})
+@pytest.fixture(autouse=True)
+def disable_auto_validation(monkeypatch):
+    monkeypatch.setattr(resource_hooks, "handle_resource_change", lambda *a, **kw: False)
+
+
+@pytest.mark.ckan_config("ckan.plugins", "validate")
+@pytest.mark.usefixtures("with_plugins")
+def test_dataset_page_hides_validation_badge_for_anonymous_user(app):
+    dataset = factories.Dataset()
+    resource = factories.Resource(
+        package_id=dataset["id"],
+        format="CSV",
+        name="validated-resource",
     )
 
+    Validation.create(
+        resource_id=resource["id"],
+        status="success",
+        error_count=0,
+        errors=[],
+    )
 
-@pytest.mark.parametrize(
-    "is_sysadmin, can_package_update, expected",
-    [
-        (True, True, True),
-        (True, False, True),
-        (False, True, True),
-        (False, False, False),
-    ],
-)
-def test_can_show_validation_controls(monkeypatch, is_sysadmin, can_package_update, expected):
-    calls = []
+    response = app.get(f"/dataset/{dataset['name']}", status=200)
 
-    def fake_check_access(action, context=None, data_dict=None):
-        calls.append((action, context, data_dict))
+    assert "validated-resource" in response
+    assert "validate-badge--valid" not in response
+    assert "Valid" not in response
 
-        if action == "sysadmin":
-            return is_sysadmin
 
-        if action == "package_update":
-            assert data_dict == {"id": "dataset-1"}
-            return can_package_update
+@pytest.mark.ckan_config("ckan.plugins", "validate")
+@pytest.mark.usefixtures("with_plugins")
+def test_dataset_page_shows_validation_badge_for_sysadmin(app):
+    sysadmin = factories.SysadminWithToken()
+    dataset = factories.Dataset()
+    resource = factories.Resource(
+        package_id=dataset["id"],
+        format="CSV",
+        name="validated-resource",
+    )
 
-        return False
+    Validation.create(
+        resource_id=resource["id"],
+        status="success",
+        error_count=0,
+        errors=[],
+    )
 
-    monkeypatch.setattr(toolkit, "check_access", fake_check_access)
+    response = app.get(
+        f"/dataset/{dataset['name']}",
+        headers={"Authorization": sysadmin["token"]},
+        status=200,
+    )
 
-    assert can_show_validation_controls("dataset-1") is expected
-
-    # Verifica el short-circuit: si ya es sysadmin, no debería consultar package_update
-    if is_sysadmin:
-        assert calls == [("sysadmin", {}, {})]
-    else:
-        assert calls == [
-            ("sysadmin", {}, {}),
-            ("package_update", {}, {"id": "dataset-1"}),
-        ]
+    assert "validated-resource" in response
+    assert "validate-badge--valid" in response
+    assert "Valid" in response

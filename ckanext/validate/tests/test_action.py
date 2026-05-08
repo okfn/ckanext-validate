@@ -8,7 +8,6 @@ from ckan.tests import factories, helpers
 
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.model.validation import Validation
-from ckanext.validate.model.validation_jobs import ValidationJob
 from .conftest import DummyUploader, DummyReport, DummyResource
 
 FIXTURES_DIR = Path(__file__).parent / "files_test"
@@ -292,11 +291,11 @@ def test_resource_validate_with_so_wrong_fixture():
 # validation_job_list
 # ---------------------------------------------------------------------------
 
-def test_validation_job_list_returns_all_jobs():
+def test_validation_job_list_returns_all_jobs(make_validation_job):
     resource = factories.Resource(format="CSV")
 
-    ValidationJob.create(resource_id=resource["id"], status="finished")
-    ValidationJob.create(resource_id=resource["id"], status="failed")
+    make_validation_job(resource_id=resource["id"], status="finished")
+    make_validation_job(resource_id=resource["id"], status="failed")
 
     result = helpers.call_action("validation_job_list")
 
@@ -304,11 +303,11 @@ def test_validation_job_list_returns_all_jobs():
     assert {r["status"] for r in result} == {"finished", "failed"}
 
 
-def test_validation_job_list_filters_by_status():
+def test_validation_job_list_filters_by_status(make_validation_job):
     resource = factories.Resource(format="CSV")
 
-    ValidationJob.create(resource_id=resource["id"], status="finished")
-    ValidationJob.create(resource_id=resource["id"], status="failed")
+    make_validation_job(resource_id=resource["id"], status="finished")
+    make_validation_job(resource_id=resource["id"], status="failed")
 
     result = helpers.call_action("validation_job_list", status="finished")
 
@@ -347,10 +346,10 @@ def test_validation_job_list_raises_not_authorized(monkeypatch):
         validate_action.validation_job_list({}, {})
 
 
-def test_validation_job_list_returns_expected_fields():
+def test_validation_job_list_returns_expected_fields(make_validation_job):
     resource = factories.Resource(format="CSV")
 
-    ValidationJob.create(resource_id=resource["id"], status="finished")
+    make_validation_job(resource_id=resource["id"], status="finished")
 
     result = helpers.call_action("validation_job_list")
 
