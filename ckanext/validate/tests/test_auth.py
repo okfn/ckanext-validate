@@ -1,5 +1,7 @@
+import pytest
+
 from ckan.plugins import toolkit
-from types import SimpleNamespace
+from ckan.tests import factories
 from ckanext.validate.auth import validation as validate_auth
 
 
@@ -70,30 +72,26 @@ def test_resource_validation_show_auth_returns_false_when_unauthorized(monkeypat
 
 
 def test_validation_job_list_auth_allows_sysadmin():
+    sysadmin = factories.Sysadmin()
+
     result = validate_auth.validation_job_list(
-        {"auth_user_obj": SimpleNamespace(sysadmin=True)},
+        {"user": sysadmin["name"]},
         {},
     )
 
-    assert result == {"success": True}
+    assert result is True
 
 
 def test_validation_job_list_auth_rejects_non_sysadmin():
-    result = validate_auth.validation_job_list(
-        {"auth_user_obj": SimpleNamespace(sysadmin=False)},
-        {},
-    )
+    user = factories.User()
 
-    assert result == {
-        "success": False,
-        "msg": "Not authorized to list validation jobs",
-    }
+    with pytest.raises(toolkit.NotAuthorized):
+        validate_auth.validation_job_list(
+            {"user": user["name"]},
+            {},
+        )
 
 
 def test_validation_job_list_auth_rejects_missing_user():
-    result = validate_auth.validation_job_list({}, {})
-
-    assert result == {
-        "success": False,
-        "msg": "Not authorized to list validation jobs",
-    }
+    with pytest.raises(toolkit.NotAuthorized):
+        validate_auth.validation_job_list({}, {})

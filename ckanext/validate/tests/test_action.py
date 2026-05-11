@@ -329,9 +329,10 @@ def test_validation_job_list_rejects_non_integer_limit():
     assert "limit" in exc.value.error_dict
 
 
-def test_validation_job_list_rejects_out_of_range_limit():
+@pytest.mark.parametrize("limit", [0, -1])
+def test_validation_job_list_rejects_non_positive_limit(limit):
     with pytest.raises(toolkit.ValidationError) as exc:
-        helpers.call_action("validation_job_list", limit=9999)
+        helpers.call_action("validation_job_list", limit=limit)
 
     assert "limit" in exc.value.error_dict
 
