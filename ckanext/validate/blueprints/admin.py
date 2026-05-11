@@ -6,6 +6,7 @@ from ckan.lib import base
 from ckan.plugins import toolkit
 
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+from ckanext.validate.helpers import format_timestamp_for_display
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ def validation_jobs():
     context = {"ignore_auth": True}
 
     def _enrich(job_dict):
+        job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
+        job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
         try:
             resource = resource_show(context, {"id": job_dict["resource_id"]})
             job_dict["resource_name"] = resource.get("name") or resource.get("description") or job_dict["resource_id"]

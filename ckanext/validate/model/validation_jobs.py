@@ -145,6 +145,6 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
             "id": self.id,
             "resource_id": self.resource_id,
             "status": self.status,
-            "created": self.create_timestamp.strftime("%Y-%m-%d %H:%M:%S") if self.create_timestamp else None,
-            "finished": self.finish_timestamp.strftime("%Y-%m-%d %H:%M:%S") if self.finish_timestamp else None,
+            "created": self.create_timestamp.isoformat() if self.create_timestamp else None,
+            "finished": self.finish_timestamp.isoformat() if self.finish_timestamp else None,
         }
