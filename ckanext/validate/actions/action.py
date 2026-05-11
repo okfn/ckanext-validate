@@ -144,9 +144,9 @@ def validation_job_list(context, data_dict):
     except (TypeError, ValueError):
         raise toolkit.ValidationError({"limit": [toolkit._("Must be an integer.")]})
 
-    if not (1 <= limit <= 1000):
+    if limit < 1:
         raise toolkit.ValidationError(
-            {"limit": [toolkit._("Must be between 1 and 1000.")]}
+            {"limit": [toolkit._("Must be a positive integer.")]}
         )
 
     jobs = ValidationJob.get_all(status=status, limit=limit)
