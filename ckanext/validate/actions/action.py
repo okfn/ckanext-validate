@@ -63,11 +63,6 @@ def resource_validate(context, data_dict):
         "Frictionless validation completed for resource %s: valid=%s",
         resource_id, report.valid,
     )
-    log.debug(
-        "Validation report for resource %s: %s",
-        resource_id,
-        report.to_descriptor(),
-    )
 
     status = "success" if report.valid else "failure"
     error_details = collect_report_errors(report)
