@@ -1,4 +1,6 @@
 import pytest
+from ckanext.validate.model import ValidationJob
+from ckan.tests import factories
 
 
 class DummyUploader:
@@ -47,3 +49,18 @@ class DummyResource:
 def validate_setup(with_plugins, reset_db, migrate_db_for):
     reset_db()
     migrate_db_for("validate")
+
+
+@pytest.fixture
+def make_validation_job():
+    def _make(resource_id=None, status="finished"):
+        if resource_id is None:
+            resource = factories.Resource(format="CSV")
+            resource_id = resource["id"]
+
+        return ValidationJob.create(
+            resource_id=resource_id,
+            status=status,
+        )
+
+    return _make

@@ -1,5 +1,7 @@
-from ckan.plugins import toolkit
+import pytest
 
+from ckan.plugins import toolkit
+from ckan.tests import factories
 from ckanext.validate.auth import validation as validate_auth
 
 
@@ -67,3 +69,29 @@ def test_resource_validation_show_auth_returns_false_when_unauthorized(monkeypat
         "success": False,
         "msg": "Not authorized to view this resource",
     }
+
+
+def test_validation_job_list_auth_allows_sysadmin():
+    sysadmin = factories.Sysadmin()
+
+    result = validate_auth.validation_job_list(
+        {"user": sysadmin["name"]},
+        {},
+    )
+
+    assert result is True
+
+
+def test_validation_job_list_auth_rejects_non_sysadmin():
+    user = factories.User()
+
+    with pytest.raises(toolkit.NotAuthorized):
+        validate_auth.validation_job_list(
+            {"user": user["name"]},
+            {},
+        )
+
+
+def test_validation_job_list_auth_rejects_missing_user():
+    with pytest.raises(toolkit.NotAuthorized):
+        validate_auth.validation_job_list({}, {})

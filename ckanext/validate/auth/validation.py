@@ -17,3 +17,8 @@ def resource_validation_show(context, data_dict):
     except toolkit.NotAuthorized:
         return {"success": False, "msg": toolkit._("Not authorized to view this resource")}
     return {"success": True}
+
+
+def validation_job_list(context, data_dict):
+    """Only sysadmins can list validation jobs."""
+    return toolkit.check_access("sysadmin", context, data_dict)

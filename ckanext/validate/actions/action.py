@@ -7,6 +7,7 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.helpers import collect_report_errors
 from ckanext.validate.model import Validation
+from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 
 log = logging.getLogger(__name__)
@@ -104,3 +105,44 @@ def resource_validation_show(context, data_dict):
         )
 
     return record.as_dict()
+
+
+def validation_job_list(context, data_dict):
+    """Return a list of validation jobs.
+
+    Restricted to sysadmins.
+
+    :param status: (optional) filter by job status. Must be one of the valid
+        :class:`~ckanext.validate.model.validation_jobs.JobStatus` values.
+    :type status: string
+
+    :param limit: (optional) maximum number of jobs to return
+    :type limit: int
+
+    :returns: list of job dicts
+    :rtype: list[dict]
+    """
+    toolkit.check_access("validation_job_list", context, data_dict)
+
+    valid_statuses = {s.value for s in JobStatus}
+
+    status = data_dict.get("status", "").strip() or None
+    if status and status not in valid_statuses:
+        raise toolkit.ValidationError(
+            {"status": [toolkit._("Invalid job status. Valid values are: {0}").format(
+                ", ".join(sorted(valid_statuses))
+            )]}
+        )
+
+    try:
+        limit = int(data_dict.get("limit", 100))
+    except (TypeError, ValueError):
+        raise toolkit.ValidationError({"limit": [toolkit._("Must be an integer.")]})
+
+    if limit < 1:
+        raise toolkit.ValidationError(
+            {"limit": [toolkit._("Must be a positive integer.")]}
+        )
+
+    jobs = ValidationJob.get_all(status=status, limit=limit)
+    return [job.as_dict() for job in jobs]
