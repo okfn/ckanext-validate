@@ -34,6 +34,7 @@ def resource_validate(context, data_dict):
     is_uploaded = resource.get("url_type") == "upload"
     fmt_lower = (resource.get("format") or "").lower()
     if is_uploaded:
+        # TODO: Refactor to new file API when migrating to CKAN 2.12.
         upload = uploader.get_resource_uploader(resource)
         source = "file://" + upload.get_path(resource["id"])
     else:
@@ -62,11 +63,6 @@ def resource_validate(context, data_dict):
     log.info(
         "Frictionless validation completed for resource %s: valid=%s",
         resource_id, report.valid,
-    )
-    log.debug(
-        "Validation report for resource %s: %s",
-        resource_id,
-        report.to_descriptor(),
     )
 
     status = "success" if report.valid else "failure"

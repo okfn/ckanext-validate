@@ -1,18 +1,18 @@
 [project]
 name = "ckanext-validate"
-version = "0.0.1"
+version = "0.1.0"
 description = "A Simple CKAN extension to validate tabular data."
 readme = "README.md"
 authors = [
-    {name = "Patricio Del Boca", email = "patricio.delboca@okfn.org"}
+    {name = "Patricio Del Boca", email = "patricio.delboca@okfn.org"},
+    {name = "German Kay", email = "german.kay@okfn.org"}
 ]
 license = {text = "AGPL"}
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 
 keywords = [ "CKAN", "validation", "dataquality", "frictionless", ]
