@@ -120,8 +120,7 @@ def validation_job_list(context, data_dict):
         :class:`~ckanext.validate.model.validation_jobs.JobStatus` values.
     :type status: string
 
-    :param limit: (optional) maximum number of results to return (default 100,
-        maximum 1000).
+    :param limit: (optional) maximum number of jobs to return
     :type limit: int
 
     :returns: list of job dicts
