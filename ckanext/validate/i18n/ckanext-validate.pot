@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-validate 0.0.1\n"
+"Project-Id-Version: ckanext-validate 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-06 14:14+0000\n"
+"POT-Creation-Date: 2026-05-12 13:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,32 +18,44 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.15.0\n"
 
-#: ckanext/validate/helpers.py:29 ckanext/validate/helpers.py:33
+#: ckanext/validate/helpers.py:31 ckanext/validate/helpers.py:35
 msgid "Structural validation error"
 msgstr ""
 
-#: ckanext/validate/helpers.py:30
+#: ckanext/validate/helpers.py:32
 msgid "The validator could not extract row-level errors from the report."
 msgstr ""
 
-#: ckanext/validate/helpers.py:59
+#: ckanext/validate/helpers.py:61
 msgid "Validation error"
 msgstr ""
 
-#: ckanext/validate/helpers.py:62
+#: ckanext/validate/helpers.py:64
 msgid "Unknown validation error"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:31
+#: ckanext/validate/actions/action.py:32
 msgid "Only CSV resources can be validated."
 msgstr ""
 
-#: ckanext/validate/actions/action.py:59
+#: ckanext/validate/actions/action.py:61
 msgid "System error: {0}"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:107
+#: ckanext/validate/actions/action.py:104
 msgid "No validation found for resource {0}"
+msgstr ""
+
+#: ckanext/validate/actions/action.py:132
+msgid "Invalid job status. Valid values are: {0}"
+msgstr ""
+
+#: ckanext/validate/actions/action.py:140
+msgid "Must be an integer."
+msgstr ""
+
+#: ckanext/validate/actions/action.py:144
+msgid "Must be a positive integer."
 msgstr ""
 
 #: ckanext/validate/auth/validation.py:9 ckanext/validate/blueprints/resource.py:58
@@ -52,6 +64,15 @@ msgstr ""
 
 #: ckanext/validate/auth/validation.py:18
 msgid "Not authorized to view this resource"
+msgstr ""
+
+#: ckanext/validate/blueprints/admin.py:21
+#: ckanext/validate/blueprints/resource.py:104
+msgid "Need to be system administrator to administer"
+msgstr ""
+
+#: ckanext/validate/blueprints/admin.py:28
+msgid "Invalid job status: {0}"
 msgstr ""
 
 #: ckanext/validate/blueprints/resource.py:34
@@ -74,10 +95,6 @@ msgstr ""
 msgid "Validation completed."
 msgstr ""
 
-#: ckanext/validate/blueprints/resource.py:104
-msgid "Need to be system administrator to administer"
-msgstr ""
-
 #: ckanext/validate/blueprints/resource.py:116
 msgid "Please select a CSV file to validate."
 msgstr ""
@@ -95,13 +112,60 @@ msgstr ""
 msgid "Validate File"
 msgstr ""
 
+#: ckanext/validate/templates/admin/base.html:6
+#: ckanext/validate/templates/admin/validation_jobs.html:3
+#: ckanext/validate/templates/admin/validation_jobs.html:11
+msgid "Validation Jobs"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:14
+msgid "Latest CSV validation background jobs."
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:19
+#: ckanext/validate/templates/admin/validation_jobs.html:48
+msgid "Status"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:21
+msgid "All"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:32
+msgid "Filter"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:37
+msgid "Clear"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:46
+msgid "ID"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:47
+msgid "Resource"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:49
+msgid "Created"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:50
+msgid "Finished"
+msgstr ""
+
+#: ckanext/validate/templates/admin/validation_jobs.html:88
+msgid "No validation jobs found from the selected status."
+msgstr ""
+
 #: ckanext/validate/templates/package/resource_read.html:11
 #: ckanext/validate/templates/validate/test_file.html:48
 msgid "Validate"
 msgstr ""
 
 #: ckanext/validate/templates/package/resource_read.html:14
-#: ckanext/validate/templates/package/resource_validate.html:29
+#: ckanext/validate/templates/package/resource_validate.html:31
 #: ckanext/validate/templates/package/snippets/resource_item.html:8
 #: ckanext/validate/templates/scheming/display_snippets/validation_status.html:5
 #: ckanext/validate/templates/validate/test_file.html:16
@@ -109,7 +173,7 @@ msgid "Valid"
 msgstr ""
 
 #: ckanext/validate/templates/package/resource_read.html:16
-#: ckanext/validate/templates/package/resource_validate.html:31
+#: ckanext/validate/templates/package/resource_validate.html:33
 #: ckanext/validate/templates/package/snippets/resource_item.html:10
 #: ckanext/validate/templates/scheming/display_snippets/validation_status.html:7
 #: ckanext/validate/templates/validate/test_file.html:18
@@ -117,7 +181,7 @@ msgid "Invalid"
 msgstr ""
 
 #: ckanext/validate/templates/package/resource_read.html:18
-#: ckanext/validate/templates/package/resource_validate.html:33
+#: ckanext/validate/templates/package/resource_validate.html:35
 #: ckanext/validate/templates/package/snippets/resource_item.html:12
 #: ckanext/validate/templates/scheming/display_snippets/validation_status.html:9
 msgid "Error"
@@ -130,10 +194,17 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_read.html:25
-#: ckanext/validate/templates/package/resource_validate.html:35
-#: ckanext/validate/templates/package/snippets/resource_item.html:19
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:16
+#: ckanext/validate/templates/package/resource_read.html:27
+#: ckanext/validate/templates/package/resource_validate.html:29
+#: ckanext/validate/templates/package/snippets/resource_item.html:21
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:18
+msgid "Running"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_read.html:30
+#: ckanext/validate/templates/package/resource_validate.html:37
+#: ckanext/validate/templates/package/snippets/resource_item.html:24
+#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:21
 msgid "Not validated"
 msgstr ""
 
@@ -146,23 +217,27 @@ msgstr ""
 msgid "Current Status"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:40
+#: ckanext/validate/templates/package/resource_validate.html:42
+msgid "Validation is waiting in the queue."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:44
 msgid "Validation is running in the background."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:42
+#: ckanext/validate/templates/package/resource_validate.html:46
 msgid "No errors found for this resource."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:45
+#: ckanext/validate/templates/package/resource_validate.html:49
 msgid "errors detected"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:48
+#: ckanext/validate/templates/package/resource_validate.html:52
 msgid "An error occurred while running the validator."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:63
+#: ckanext/validate/templates/package/resource_validate.html:67
 msgid "Run Validation"
 msgstr ""
 

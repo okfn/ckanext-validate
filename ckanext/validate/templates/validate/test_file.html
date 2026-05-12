@@ -19,7 +19,7 @@
         {% endif %}
       </div>
       {% if report_valid %}
-        <p class="validate-summary__text">{{ _('No errors found in') }} <em>{{ filename }}</em>.</p>
+        <p class="validate-summary__text">{{ _('No errors found in') }} <em><b>{{ filename }}</b></em>.</p>
       {% else %}
         <p class="validate-summary__text">
           <strong>{{ errors | length }}</strong> {{ _('error(s) found in') }} <em><b>{{ filename }}</b></em>.
