@@ -7,6 +7,7 @@ A simple CKAN extension to validate tabular data powered by [frictionless data](
 **Important:** This extension does not support any kind of Cloud Storage and it is designed for `docker-compose` setups where
 workers have access to the files directly. Multistorage support will be implemented once the new File API of CKAN 2.12 is released.
 
+![A screenshot of the main validation report screen showing errors by category](./ckanext-validate.png)
 
 ## Requirements
 
