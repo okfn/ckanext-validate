@@ -1,4 +1,4 @@
-[![Tests](https://github.com/okfn/ckanext-validate/workflows/Tests/badge.svg?branch=main)](https://github.com/okfn/ckanext-validate/actions)
+[![Tests](https://github.com/okfn/ckanext-validate/workflows/Tests/badge.svg)](https://github.com/okfn/ckanext-validate/actions)
 
 # ckanext-validate
 
