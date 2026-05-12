@@ -111,6 +111,20 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
         return record
 
     @classmethod
+    def get_all(cls, status=None, limit=100):
+        query = Session.query(cls)
+
+        if status:
+            query = query.filter(cls.status == status)
+
+        return (
+            query
+            .order_by(cls.create_timestamp.desc())
+            .limit(limit)
+            .all()
+        )
+
+    @classmethod
     def get_latest_job_for_resource(cls, resource_id):
         return (
             Session.query(cls)

@@ -25,6 +25,8 @@
 
         {% if status == 'pending' %}
           <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
+        {% elif status == 'running' %}
+          <span class="validate-badge validate-badge--running">{{ _('Running') }}</span>
         {% elif status == 'success' %}
           <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
         {% elif status == 'failure' %}
@@ -37,6 +39,8 @@
       </div>
 
       {% if status == 'pending' %}
+        <p class="validate-summary__text">{{ _('Validation is waiting in the queue.') }}</p>
+      {% elif status == 'running' %}
         <p class="validate-summary__text">{{ _('Validation is running in the background.') }}</p>
       {% elif status == 'success' %}
         <p class="validate-summary__text">{{ _('No errors found for this resource.') }}</p>

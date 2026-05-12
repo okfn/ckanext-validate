@@ -1,3 +1,5 @@
+import datetime
+
 from collections import OrderedDict
 
 import ckan.plugins.toolkit as toolkit
@@ -239,7 +241,23 @@ def get_resource_validation_state(resource_dict):
     if job_status in JobStatus.pending_statuses():
         return "pending"
 
+    if job_status in JobStatus.running_statuses():
+        return "running"
+
     if job_status in JobStatus.error_statuses():
         return "error"
 
     return None
+
+
+def format_timestamp_for_display(value):
+    if not value:
+        return None
+
+    if isinstance(value, str):
+        try:
+            value = datetime.datetime.fromisoformat(value)
+        except ValueError:
+            return value
+
+    return value.strftime("%Y-%m-%d %H:%M:%S")
