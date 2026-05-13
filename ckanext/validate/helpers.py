@@ -261,3 +261,8 @@ def format_timestamp_for_display(value):
             return value
 
     return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def normalize_format(resource_dict):
+    """Return the resource format in lowercase, or empty string."""
+    return (resource_dict.get("format") or "").strip().lower()

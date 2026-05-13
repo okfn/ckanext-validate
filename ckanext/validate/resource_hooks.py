@@ -4,13 +4,13 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate import jobs
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+from ckanext.validate.helpers import normalize_format
 
 log = logging.getLogger(__name__)
 
 
 def is_csv_resource(resource_dict):
-    fmt = (resource_dict.get("format") or "").strip().lower()
-    return fmt == "csv"
+    return normalize_format(resource_dict) == "csv"
 
 
 def is_resource_eligible_for_auto_validation(resource_dict):
