@@ -18,7 +18,7 @@ resource_validate_blueprint = Blueprint(
 )
 
 validate_test_file_blueprint = Blueprint(
-    "validate_test_file", __name__, url_prefix="/validate"
+    "validate_test_file", __name__
 )
 
 
@@ -91,11 +91,6 @@ def validate(package_id, resource_id):
             "error_row_limit": h.MAX_ERROR_ROWS_PER_GROUP,
         },
     )
-
-
-validate_test_file_blueprint = Blueprint(
-    "validate_test_file", __name__
-)
 
 
 @validate_test_file_blueprint.route("/ckan-admin/testfile", methods=["GET", "POST"])
