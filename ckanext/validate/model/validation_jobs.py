@@ -85,13 +85,6 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
         return Session.query(cls).filter(cls.id == job_id).first()
 
     @classmethod
-    def update(cls, resource_id, status):
-        record = cls.get_latest_job_for_resource(resource_id)
-        if not record:
-            raise ValueError(f"No existing job found for resource_id {resource_id}")
-        return cls.update_by_id(record.id, status)
-
-    @classmethod
     def update_by_id(cls, job_id, status):
         record = cls.get(job_id)
         if not record:
