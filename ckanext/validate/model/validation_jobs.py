@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import enum
 import logging
 
@@ -58,7 +58,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     resource_id = Column(UnicodeText, nullable=False)
     status = Column(UnicodeText, nullable=False)
-    create_timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    create_timestamp = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     finish_timestamp = Column(DateTime, nullable=True)
 
     __table_args__ = (
@@ -99,7 +99,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
 
         record.status = status.value if isinstance(status, JobStatus) else status
         if status in JobStatus.terminal_statuses():
-            record.finish_timestamp = datetime.datetime.utcnow()
+            record.finish_timestamp = datetime.now(timezone.utc)
 
         record.commit()
         log.info(

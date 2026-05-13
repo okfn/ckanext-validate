@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -256,7 +256,7 @@ def format_timestamp_for_display(value):
 
     if isinstance(value, str):
         try:
-            value = datetime.datetime.fromisoformat(value)
+            value = datetime.fromisoformat(value)
         except ValueError:
             return value
 

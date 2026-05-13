@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Index, Integer, UnicodeText
 
@@ -18,7 +18,7 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
     status = Column(UnicodeText, nullable=False)
     error_count = Column(Integer, nullable=False, default=0)
     errors = Column(JsonDictType)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    created = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         Index("ix_resource_validation_resource_id_created", "resource_id", "created"),
