@@ -52,11 +52,11 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
 
     @classmethod
     def get_resource_status(cls, resource_id):
+        """Return the most recent validation status for a resource, or None."""
         record = cls.get_latest(resource_id)
         if record:
             return record.status
-        else:
-            return None
+        return None
 
     def as_dict(self):
         return {
