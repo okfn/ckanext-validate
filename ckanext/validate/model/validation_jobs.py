@@ -135,6 +135,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
 
     @classmethod
     def get_latest_job_status_for_resource(cls, resource_id):
+        """Return the most recent validation job status for a resource, or None."""
         record = cls.get_latest_job_for_resource(resource_id)
         if record:
             return record.status
