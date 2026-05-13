@@ -53,7 +53,6 @@ from ckan.plugins import plugin_loaded
 from ckanext.validate import resource_hooks
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.auth import validation as validate_auth
-from ckanext.validate.blueprints.resource import validate_test_file_blueprint
 from ckanext.validate.blueprints import resource as validate_resource
 from ckanext.validate.blueprints import admin as validate_admin
 from ckanext.validate.plugin import ValidatePlugin
@@ -72,7 +71,7 @@ def test_plugin_registers_expected_blueprint():
 
     assert blueprints == [
         validate_resource.resource_validate_blueprint,
-        validate_test_file_blueprint,
+        validate_resource.validate_test_file_blueprint,
         validate_admin.validation_jobs_blueprint,
     ]
 
@@ -161,6 +160,12 @@ def test_plugin_registers_expected_helpers():
 
 
 def test_plugin_delete_hooks_are_noops():
+    """
+    Verify that delete hooks are no-ops.
+    This ensures we haven't accidentally overridden before_resource_delete
+    or after_resource_delete, since our extension doesn't require cleanup
+    logic when deleting resources.
+    """
     plugin = ValidatePlugin()
 
     assert plugin.before_resource_delete({}, {"id": "res-6"}, [{"id": "res-6"}]) is None
