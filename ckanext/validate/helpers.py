@@ -113,6 +113,12 @@ def _preview_for_blank_label(items):
 
 
 def _preview_for_blank_row(items):
+    """
+    Generate a preview for blank-row errors.
+
+    Cells are intentionally blanked out to visually indicate a blank row in the
+    preview, even if the underlying data item contains partial values.
+    """
     max_columns = max(
         6,
         max((len(item["labels"]) for item in items), default=0),
