@@ -107,6 +107,7 @@ def resource_validation_show(context, data_dict):
     return record.as_dict()
 
 
+@toolkit.side_effect_free
 def validation_job_list(context, data_dict):
     """Return a list of validation jobs.
 
