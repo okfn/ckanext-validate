@@ -3,6 +3,10 @@ from ckanext.validate.model import ValidationJob
 from ckan.tests import factories
 
 
+def status_value(value):
+    return value.value if hasattr(value, "value") else value
+
+
 class DummyUploader:
     def __init__(self, path):
         self.path = str(path)
