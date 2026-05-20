@@ -303,6 +303,12 @@ def test_validation_job_list_returns_all_jobs(make_validation_job):
     assert {r["status"] for r in result} == {"finished", "failed"}
 
 
+def test_validation_job_list_is_side_effect_free():
+    action = toolkit.get_action("validation_job_list")
+
+    assert hasattr(action, "side_effect_free") is True
+
+
 def test_validation_job_list_filters_by_status(make_validation_job):
     resource = factories.Resource(format="CSV")
 
