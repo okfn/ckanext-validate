@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import enum
 import logging
 
@@ -58,7 +58,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     resource_id = Column(UnicodeText, nullable=False)
     status = Column(UnicodeText, nullable=False)
-    create_timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    create_timestamp = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     finish_timestamp = Column(DateTime, nullable=True)
 
     __table_args__ = (
@@ -85,13 +85,6 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
         return Session.query(cls).filter(cls.id == job_id).first()
 
     @classmethod
-    def update(cls, resource_id, status):
-        record = cls.get_latest_job_for_resource(resource_id)
-        if not record:
-            raise ValueError(f"No existing job found for resource_id {resource_id}")
-        return cls.update_by_id(record.id, status)
-
-    @classmethod
     def update_by_id(cls, job_id, status):
         record = cls.get(job_id)
         if not record:
@@ -99,7 +92,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
 
         record.status = status.value if isinstance(status, JobStatus) else status
         if status in JobStatus.terminal_statuses():
-            record.finish_timestamp = datetime.datetime.utcnow()
+            record.finish_timestamp = datetime.now(timezone.utc)
 
         record.commit()
         log.info(
@@ -135,6 +128,7 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
 
     @classmethod
     def get_latest_job_status_for_resource(cls, resource_id):
+        """Return the most recent validation job status for a resource, or None."""
         record = cls.get_latest_job_for_resource(resource_id)
         if record:
             return record.status

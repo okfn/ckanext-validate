@@ -5,9 +5,10 @@ from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
-from ckanext.validate.helpers import collect_report_errors
+from ckanext.validate.helpers import collect_report_errors, normalize_format
 from ckanext.validate.model import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+from ckanext.validate.resource_hooks import is_csv_resource
 
 
 log = logging.getLogger(__name__)
@@ -26,14 +27,13 @@ def resource_validate(context, data_dict):
     toolkit.check_access("resource_update", context, {"id": resource_id})
     resource = toolkit.get_action("resource_show")(context, {"id": resource_id})
 
-    fmt = (resource.get("format") or "").upper()
-    if fmt != "CSV":
+    if not is_csv_resource(resource):
         raise toolkit.ValidationError(
             {"format": [toolkit._("Only CSV resources can be validated.")]}
         )
 
     is_uploaded = resource.get("url_type") == "upload"
-    fmt_lower = (resource.get("format") or "").lower()
+    fmt_lower = normalize_format(resource)
     if is_uploaded:
         # TODO: Refactor to new file API when migrating to CKAN 2.12.
         upload = uploader.get_resource_uploader(resource)

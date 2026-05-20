@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -113,6 +113,12 @@ def _preview_for_blank_label(items):
 
 
 def _preview_for_blank_row(items):
+    """
+    Generate a preview for blank-row errors.
+
+    Cells are intentionally blanked out to visually indicate a blank row in the
+    preview, even if the underlying data item contains partial values.
+    """
     max_columns = max(
         6,
         max((len(item["labels"]) for item in items), default=0),
@@ -256,8 +262,13 @@ def format_timestamp_for_display(value):
 
     if isinstance(value, str):
         try:
-            value = datetime.datetime.fromisoformat(value)
+            value = datetime.fromisoformat(value)
         except ValueError:
             return value
 
     return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def normalize_format(resource_dict):
+    """Return the resource format in lowercase, or empty string."""
+    return (resource_dict.get("format") or "").strip().lower()

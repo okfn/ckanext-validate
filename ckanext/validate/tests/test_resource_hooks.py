@@ -66,7 +66,7 @@ def test_handle_resource_change_enqueues_job_for_eligible_resource(monkeypatch):
 
     result = resource_hooks.handle_resource_change(resource)
 
-    assert result is True
+    assert result is None
     assert captured == {"resource_id": "res-2"}
 
 
@@ -92,7 +92,7 @@ def test_handle_resource_change_skips_non_csv(monkeypatch):
 
     result = resource_hooks.handle_resource_change(resource)
 
-    assert result is False
+    assert result is None
     assert called == {"enqueue": False}
 
 
@@ -118,7 +118,7 @@ def test_handle_resource_change_skips_deleted_resource(monkeypatch):
 
     result = resource_hooks.handle_resource_change(resource)
 
-    assert result is False
+    assert result is None
     assert called == {"enqueue": False}
 
 

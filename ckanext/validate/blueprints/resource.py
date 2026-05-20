@@ -18,7 +18,7 @@ resource_validate_blueprint = Blueprint(
 )
 
 validate_test_file_blueprint = Blueprint(
-    "validate_test_file", __name__, url_prefix="/validate"
+    "validate_test_file", __name__
 )
 
 
@@ -93,13 +93,9 @@ def validate(package_id, resource_id):
     )
 
 
-validate_test_file_blueprint = Blueprint(
-    "validate_test_file", __name__
-)
-
-
 @validate_test_file_blueprint.route("/ckan-admin/testfile", methods=["GET", "POST"])
-def test_file():
+def validate_test_file_view():
+    """View to validate a test CSV file uploaded manually."""
     if not getattr(toolkit.current_user, "sysadmin", False):
         base.abort(403, toolkit._("Need to be system administrator to administer"))
 
@@ -128,6 +124,7 @@ def test_file():
             )
 
         tmp_fd, tmp_path = tempfile.mkstemp(suffix=".csv")
+        os.close(tmp_fd)
         try:
             uploaded_file.save(tmp_path)
 
@@ -151,7 +148,6 @@ def test_file():
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
-            os.close(tmp_fd)  # TODO: check!
             success = True
 
     return base.render(

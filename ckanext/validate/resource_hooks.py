@@ -4,13 +4,13 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate import jobs
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+from ckanext.validate.helpers import normalize_format
 
 log = logging.getLogger(__name__)
 
 
 def is_csv_resource(resource_dict):
-    fmt = (resource_dict.get("format") or "").strip().lower()
-    return fmt == "csv"
+    return normalize_format(resource_dict) == "csv"
 
 
 def is_resource_eligible_for_auto_validation(resource_dict):
@@ -58,6 +58,9 @@ def enqueue_resource_validation_job(resource_id):
 
 
 def handle_resource_change(resource_dict):
+    """
+    Handles resource changes by triggering validation if eligible.
+    """
     if not is_resource_eligible_for_auto_validation(resource_dict):
         log.debug(
             "Skipping auto-validation flow for resource %s "
@@ -67,10 +70,10 @@ def handle_resource_change(resource_dict):
             resource_dict.get("state") if resource_dict else None,
             resource_dict.get("url_type") if resource_dict else None,
         )
-        return False
+        return  # Returns None
 
     resource_id = resource_dict["id"]
     enqueue_resource_validation_job(resource_id)
 
     log.info("Validation job enqueued for resource %s", resource_id)
-    return True
+    # Returns None implicitly
