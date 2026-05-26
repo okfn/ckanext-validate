@@ -36,33 +36,32 @@ def validation_jobs():
 
     resource_show = toolkit.get_action("resource_show")
     context = {"ignore_auth": True}
-    orphan_resource_ids = set()
 
     def _enrich(job_dict):
         job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
         job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
-
         try:
             resource = resource_show(context, {"id": job_dict["resource_id"]})
-        except Exception:
-            orphan_resource_ids.add(job_dict["resource_id"])
+            job_dict["resource_name"] = (
+                resource.get("name")
+                or resource.get("description")
+                or job_dict["resource_id"]
+            )
+            job_dict["resource_url"] = toolkit.url_for(
+                "resource.read",
+                id=resource["package_id"],
+                resource_id=job_dict["resource_id"],
+            )
+            return job_dict
+
+        except toolkit.ObjectNotFound:
+            deleted = ValidationJob.delete_for_resource(job_dict["resource_id"])
             log.info(
-                "Found orphan validation job for deleted resource %s",
+                "Removed %s orphan validation jobs for deleted resource %s",
+                deleted,
                 job_dict["resource_id"],
             )
             return None
-
-        job_dict["resource_name"] = (
-            resource.get("name")
-            or resource.get("description")
-            or job_dict["resource_id"]
-        )
-        job_dict["resource_url"] = toolkit.url_for(
-            "resource.read",
-            id=resource["package_id"],
-            resource_id=job_dict["resource_id"],
-        )
-        return job_dict
 
     enriched_jobs = []
 
@@ -70,14 +69,6 @@ def validation_jobs():
         enriched_job = _enrich(job.as_dict())
         if enriched_job:
             enriched_jobs.append(enriched_job)
-
-    for resource_id in orphan_resource_ids:
-        deleted = ValidationJob.delete_for_resource(resource_id)
-        log.info(
-            "Removed %s orphan validation jobs for deleted resource %s",
-            deleted,
-            resource_id,
-        )
 
     return base.render(
         "admin/validation_jobs.html",
