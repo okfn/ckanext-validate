@@ -208,3 +208,32 @@ def test_enqueue_resource_validation_job_marks_created_job_as_error_in_db_when_e
     assert result is None
     assert status_value(refreshed.status) == "error"
     assert refreshed.finish_timestamp is not None
+
+
+def test_cleanup_resource_jobs_deletes_all_jobs_for_resource(monkeypatch):
+    captured = {}
+
+    def fake_delete_for_resource(resource_id):
+        captured["resource_id"] = resource_id
+        return 3
+
+    monkeypatch.setattr(resource_hooks.ValidationJob, "delete_for_resource", fake_delete_for_resource)
+
+    result = resource_hooks.cleanup_resource_jobs({"id": "res-delete-1"})
+
+    assert result is None
+    assert captured == {"resource_id": "res-delete-1"}
+
+
+def test_cleanup_resource_jobs_skips_when_resource_has_no_id(monkeypatch):
+    called = {"delete": False}
+
+    def fake_delete_for_resource(resource_id):
+        called["delete"] = True
+
+    monkeypatch.setattr(resource_hooks.ValidationJob, "delete_for_resource", fake_delete_for_resource)
+
+    result = resource_hooks.cleanup_resource_jobs({})
+
+    assert result is None
+    assert called == {"delete": False}

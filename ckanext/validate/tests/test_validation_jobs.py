@@ -83,3 +83,19 @@ def test_get_latest_job_status_for_resource_returns_status_of_most_recent_job():
     latest_status = ValidationJob.get_latest_job_status_for_resource(resource_id)
 
     assert status_value(latest_status) == "finished"
+
+
+def test_delete_for_resource_removes_only_matching_jobs():
+    target_resource_id = "res-delete-jobs-target"
+    other_resource_id = "res-delete-jobs-other"
+
+    target_a = ValidationJob.create(resource_id=target_resource_id, status=JobStatus.QUEUED)
+    target_b = ValidationJob.create(resource_id=target_resource_id, status=JobStatus.RUNNING)
+    other = ValidationJob.create(resource_id=other_resource_id, status=JobStatus.FINISHED)
+
+    deleted = ValidationJob.delete_for_resource(target_resource_id)
+
+    assert deleted == 2
+    assert ValidationJob.get(target_a.id) is None
+    assert ValidationJob.get(target_b.id) is None
+    assert ValidationJob.get(other.id) is not None
