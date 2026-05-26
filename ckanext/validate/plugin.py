@@ -75,6 +75,13 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
             log.debug("Resource file changed, triggering validation for resource %s", updated_resource.get("id"))
             resource_hooks.handle_resource_change(updated_resource)
 
+    def before_resource_delete(self, context, resource, resources):
+        log.info(
+            "Cleaning validation jobs before deleting resource %s",
+            resource.get("id") if resource else None,
+        )
+        resource_hooks.cleanup_resource_jobs(resource)
+
     # ITemplateHelpers
 
     def get_helpers(self):

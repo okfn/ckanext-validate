@@ -42,21 +42,38 @@ def validation_jobs():
         job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
         try:
             resource = resource_show(context, {"id": job_dict["resource_id"]})
-            job_dict["resource_name"] = resource.get("name") or resource.get("description") or job_dict["resource_id"]
+            job_dict["resource_name"] = (
+                resource.get("name")
+                or resource.get("description")
+                or job_dict["resource_id"]
+            )
             job_dict["resource_url"] = toolkit.url_for(
                 "resource.read",
                 id=resource["package_id"],
                 resource_id=job_dict["resource_id"],
             )
+            return job_dict
+
         except toolkit.ObjectNotFound:
-            job_dict["resource_name"] = job_dict["resource_id"]
-            job_dict["resource_url"] = None
-        return job_dict
+            deleted = ValidationJob.delete_for_resource(job_dict["resource_id"])
+            log.info(
+                "Removed %s orphan validation jobs for deleted resource %s",
+                deleted,
+                job_dict["resource_id"],
+            )
+            return None
+
+    enriched_jobs = []
+
+    for job in jobs:
+        enriched_job = _enrich(job.as_dict())
+        if enriched_job:
+            enriched_jobs.append(enriched_job)
 
     return base.render(
         "admin/validation_jobs.html",
         extra_vars={
-            "jobs": [_enrich(job.as_dict()) for job in jobs],
+            "jobs": enriched_jobs,
             "available_statuses": available_statuses,
             "selected_status": selected_status,
         },
