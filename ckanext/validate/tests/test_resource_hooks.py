@@ -1,6 +1,7 @@
-import pytest
-
 from types import SimpleNamespace
+
+import pytest
+from ckan.tests import factories, helpers
 
 from ckanext.validate import jobs
 from ckanext.validate import resource_hooks
@@ -210,30 +211,69 @@ def test_enqueue_resource_validation_job_marks_created_job_as_error_in_db_when_e
     assert refreshed.finish_timestamp is not None
 
 
-def test_cleanup_resource_jobs_deletes_all_jobs_for_resource(monkeypatch):
-    captured = {}
-
-    def fake_delete_for_resource(resource_id):
-        captured["resource_id"] = resource_id
-        return 3
-
-    monkeypatch.setattr(resource_hooks.ValidationJob, "delete_for_resource", fake_delete_for_resource)
-
-    result = resource_hooks.cleanup_resource_jobs({"id": "res-delete-1"})
-
-    assert result is None
-    assert captured == {"resource_id": "res-delete-1"}
-
-
-def test_cleanup_resource_jobs_skips_when_resource_has_no_id(monkeypatch):
+@pytest.mark.parametrize("resource", [None, {}])
+def test_cleanup_resource_jobs_skips_when_resource_has_no_id(monkeypatch, resource):
     called = {"delete": False}
 
     def fake_delete_for_resource(resource_id):
         called["delete"] = True
 
-    monkeypatch.setattr(resource_hooks.ValidationJob, "delete_for_resource", fake_delete_for_resource)
+    monkeypatch.setattr(
+        resource_hooks.ValidationJob,
+        "delete_for_resource",
+        fake_delete_for_resource,
+    )
 
-    result = resource_hooks.cleanup_resource_jobs({})
+    result = resource_hooks.cleanup_resource_jobs(resource)
 
     assert result is None
     assert called == {"delete": False}
+
+
+@pytest.mark.ckan_config("ckan.plugins", "validate")
+@pytest.mark.usefixtures("with_plugins")
+def test_resource_delete_action_removes_validation_jobs_for_deleted_resource(monkeypatch):
+    # Avoid auto-enqueueing validation jobs while creating resources in the test.
+    monkeypatch.setattr(
+        resource_hooks,
+        "handle_resource_change",
+        lambda *args, **kwargs: None,
+    )
+
+    sysadmin = factories.Sysadmin()
+    dataset = factories.Dataset()
+
+    resource = factories.Resource(
+        package_id=dataset["id"],
+        format="CSV",
+    )
+    other_resource = factories.Resource(
+        package_id=dataset["id"],
+        format="CSV",
+    )
+
+    job_a = ValidationJob.create(
+        resource_id=resource["id"],
+        status=JobStatus.QUEUED,
+    )
+    job_b = ValidationJob.create(
+        resource_id=resource["id"],
+        status=JobStatus.FINISHED,
+    )
+    other_job = ValidationJob.create(
+        resource_id=other_resource["id"],
+        status=JobStatus.QUEUED,
+    )
+
+    helpers.call_action(
+        "resource_delete",
+        context={"user": sysadmin["name"]},
+        id=resource["id"],
+    )
+
+    assert ValidationJob.get(job_a.id) is None
+    assert ValidationJob.get(job_b.id) is None
+    assert ValidationJob.get_latest_job_for_resource(resource["id"]) is None
+
+    # Sanity check: deleting one resource must not remove jobs from another resource.
+    assert ValidationJob.get(other_job.id) is not None
