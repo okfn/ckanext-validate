@@ -13,6 +13,7 @@ from ckanext.validate.model.validation import Validation
 
 log = logging.getLogger(__name__)
 
+
 resource_validate_blueprint = Blueprint(
     "resource_validate", __name__, url_prefix="/dataset"
 )
@@ -53,28 +54,42 @@ def validate(package_id, resource_id):
             context = {"user": toolkit.current_user.name}
             toolkit.get_action("resource_validate")(context, {"id": resource_id})
         except toolkit.ValidationError as e:
-            errors = e.error_dict
+            msg = h.validation_error_message(e)
+            log.exception(
+                "Manual validation failed for resource %s: %s",
+                resource_id,
+                msg,
+            )
+            toolkit.h.flash_error(msg)
+            return toolkit.redirect_to(
+                "resource.read",
+                id=package_id,
+                resource_id=resource_id,
+            )
         except toolkit.NotAuthorized:
             base.abort(403, toolkit._("Not authorized to validate this resource"))
 
-        if not errors:
-            record = Validation.get_latest(resource_id)
-            if record and record.status == "success":
-                toolkit.h.flash_success(
-                    toolkit._("Validation completed. No errors found.")
-                )
-            elif record and record.status == "failure":
-                msg = toolkit._("Validation completed. {} errors found.").format(
-                    record.error_count
-                )
-                toolkit.h.flash_error(msg)
-            else:
-                toolkit.h.flash_success(toolkit._("Validation completed."))
+        record = Validation.get_latest(resource_id)
+        if record and record.status == "success":
+            toolkit.h.flash_success(
+                toolkit._("Validation completed. No errors found.")
+            )
+        elif record and record.status == "failure":
+            msg = toolkit._("Validation completed. {} errors found.").format(
+                record.error_count
+            )
+            toolkit.h.flash_error(msg)
+        else:
+            toolkit.h.flash_success(toolkit._("Validation completed."))
 
     record = Validation.get_latest(resource_id)
     validation_errors = record.errors if record else []
     validation_error_count = record.error_count if record else 0
     validation_error_groups = h.group_validation_errors(validation_errors)
+    validation_created = (
+        h.format_timestamp_for_display(record.created)
+        if record else None
+    )
 
     return base.render(
         "package/resource_validate.html",
@@ -88,6 +103,7 @@ def validate(package_id, resource_id):
             "validation_errors": validation_errors or [],
             "validation_error_count": validation_error_count,
             "validation_error_groups": validation_error_groups,
+            "validation_created": validation_created,
             "error_row_limit": h.MAX_ERROR_ROWS_PER_GROUP,
         },
     )
