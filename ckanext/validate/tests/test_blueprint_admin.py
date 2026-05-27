@@ -37,3 +37,4 @@ class TestValidationJobsViewAccess:
         )
 
         assert "Validation Jobs" in response
+        assert "manually triggered validations do not create a background job" in response

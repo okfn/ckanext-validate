@@ -14,6 +14,11 @@
     {{ _('Latest CSV validation background jobs.') }}
   </p>
 
+  <div class="alert alert-warning">
+    <strong>{{ _('Important:') }}</strong>
+    {{ _('manually triggered validations do not create a background job. Therefore, that action will not be listed here.') }}
+  </div>
+
   <form method="get" class="form-inline" style="margin-bottom: 20px;">
     <div class="form-group">
       <label for="status">{{ _('Status') }}</label>
