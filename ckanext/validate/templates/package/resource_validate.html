@@ -38,6 +38,13 @@
         {% endif %}
       </div>
 
+      {% if validation_created %}
+        <p class="validate-summary__text validate-summary__timestamp">
+          <strong>{{ _('Last validation:') }}</strong> 
+          <span class="badge bg-secondary text-white">{{ validation_created }}</span>
+        </p>
+      {% endif %}
+
       {% if status == 'pending' %}
         <p class="validate-summary__text">{{ _('Validation is waiting in the queue.') }}</p>
       {% elif status == 'running' %}

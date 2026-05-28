@@ -272,3 +272,15 @@ def format_timestamp_for_display(value):
 def normalize_format(resource_dict):
     """Return the resource format in lowercase, or empty string."""
     return (resource_dict.get("format") or "").strip().lower()
+
+def validation_error_message(error):
+    error_dict = getattr(error, "error_dict", None) or {}
+    messages = []
+
+    for value in error_dict.values():
+        if isinstance(value, (list, tuple)):
+            messages.extend(str(item) for item in value)
+        elif value:
+            messages.append(str(value))
+
+    return "; ".join(messages) or str(error)
