@@ -71,16 +71,16 @@ def validate(package_id, resource_id):
 
         record = Validation.get_latest(resource_id)
         if record and record.status == "success":
-            toolkit.h.flash_success(
+            toolkit.h.flash_notice(
                 toolkit._("Validation completed. No errors found.")
             )
         elif record and record.status == "failure":
             msg = toolkit._("Validation completed. {} errors found.").format(
                 record.error_count
             )
-            toolkit.h.flash_error(msg)
+            toolkit.h.flash_notice(msg)
         else:
-            toolkit.h.flash_success(toolkit._("Validation completed."))
+            toolkit.h.flash_notice(toolkit._("Validation completed."))
 
     record = Validation.get_latest(resource_id)
     validation_errors = record.errors if record else []
@@ -125,7 +125,7 @@ def validate_test_file_view():
         uploaded_file = toolkit.request.files.get("file")
 
         if not uploaded_file or not uploaded_file.filename:
-            toolkit.h.flash_error(toolkit._("Please select a CSV file to validate."))
+            toolkit.h.flash_notice(toolkit._("Please select a CSV file to validate."))
             return base.render(
                 "validate/test_file.html",
                 extra_vars={"success": success},
@@ -133,7 +133,7 @@ def validate_test_file_view():
 
         filename = uploaded_file.filename
         if not filename.lower().endswith(".csv"):
-            toolkit.h.flash_error(toolkit._("Only CSV files are supported."))
+            toolkit.h.flash_notice(toolkit._("Only CSV files are supported."))
             return base.render(
                 "validate/test_file.html",
                 extra_vars={"success": success},
