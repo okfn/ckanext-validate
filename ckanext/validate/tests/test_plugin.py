@@ -159,14 +159,28 @@ def test_plugin_registers_expected_helpers():
     assert "get_resource_validation_job_status" in helpers
 
 
-def test_plugin_delete_hooks_are_noops():
-    """
-    Verify that delete hooks are no-ops.
-    This ensures we haven't accidentally overridden before_resource_delete
-    or after_resource_delete, since our extension doesn't require cleanup
-    logic when deleting resources.
-    """
+def test_plugin_before_resource_delete_delegates_cleanup_for_deleted_resource(monkeypatch):
+    captured = []
+
+    def fake_cleanup_resource_jobs(resource_dict):
+        captured.append(resource_dict)
+
+    monkeypatch.setattr(
+        resource_hooks,
+        "cleanup_resource_jobs",
+        fake_cleanup_resource_jobs,
+    )
+
     plugin = ValidatePlugin()
 
-    assert plugin.before_resource_delete({}, {"id": "res-6"}, [{"id": "res-6"}]) is None
-    assert plugin.after_resource_delete({}, [{"id": "res-6"}]) is None
+    deleted_resource = {"id": "res-6"}
+    remaining_resources = [{"id": "res-7"}]
+
+    result = plugin.before_resource_delete(
+        {},
+        deleted_resource,
+        remaining_resources,
+    )
+
+    assert result is None
+    assert captured == [deleted_resource]

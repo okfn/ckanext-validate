@@ -77,3 +77,17 @@ def handle_resource_change(resource_dict):
 
     log.info("Validation job enqueued for resource %s", resource_id)
     # Returns None implicitly
+
+
+def cleanup_resource_jobs(resource_dict):
+    """Remove all persisted validation jobs associated to a deleted resource."""
+    resource_id = resource_dict.get("id") if resource_dict else None
+    if not resource_id:
+        return
+
+    deleted = ValidationJob.delete_for_resource(resource_id)
+    log.info(
+        "Removed %s validation jobs after deleting resource %s",
+        deleted,
+        resource_id,
+    )

@@ -134,6 +134,18 @@ class ValidationJob(toolkit.BaseModel, ActiveRecordMixin):
             return record.status
         return None
 
+    @classmethod
+    def delete_for_resource(cls, resource_id):
+        """Delete all validation jobs for a resource and return deleted row count."""
+        deleted = Session.query(cls).filter(cls.resource_id == resource_id).delete()
+        Session.commit()
+        log.info(
+            "Deleted %s validation jobs for resource_id=%s",
+            deleted,
+            resource_id,
+        )
+        return deleted
+
     def as_dict(self):
         return {
             "id": self.id,
