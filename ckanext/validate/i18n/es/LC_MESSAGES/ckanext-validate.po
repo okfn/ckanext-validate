@@ -133,7 +133,7 @@ msgid ""
 "manually triggered validations do not create a background job. Therefore,"
 " that action will not be listed here."
 msgstr ""
-"las validaciones activadas manualmente no crean un trabajo de fondo. Por lo "
+"las validaciones activadas manualmente no crean un trabajo en segundo plano. Por lo "
 "tanto, esa acción no se mostrará aquí."
 
 #: ckanext/validate/templates/admin/validation_jobs.html:24
