@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validate 0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-27 14:59+0000\n"
+"POT-Creation-Date: 2026-05-28 13:41+0000\n"
 "PO-Revision-Date: 2024-01-01 00:00+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -124,40 +124,52 @@ msgstr "Trabajos de validación"
 msgid "Latest CSV validation background jobs."
 msgstr "Últimos trabajos de validación CSV en segundo plano."
 
+#: ckanext/validate/templates/admin/validation_jobs.html:18
+msgid "Important:"
+msgstr "Importante:"
+
 #: ckanext/validate/templates/admin/validation_jobs.html:19
-#: ckanext/validate/templates/admin/validation_jobs.html:48
+msgid ""
+"manually triggered validations do not create a background job. Therefore,"
+" that action will not be listed here."
+msgstr ""
+"las validaciones activadas manualmente no crean un trabajo en segundo plano. Por lo "
+"tanto, esa acción no se mostrará aquí."
+
+#: ckanext/validate/templates/admin/validation_jobs.html:24
+#: ckanext/validate/templates/admin/validation_jobs.html:53
 msgid "Status"
 msgstr "Estado"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:21
+#: ckanext/validate/templates/admin/validation_jobs.html:26
 msgid "All"
 msgstr "Todos"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:32
+#: ckanext/validate/templates/admin/validation_jobs.html:37
 msgid "Filter"
 msgstr "Filtrar"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:37
+#: ckanext/validate/templates/admin/validation_jobs.html:42
 msgid "Clear"
 msgstr "Limpiar"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:46
+#: ckanext/validate/templates/admin/validation_jobs.html:51
 msgid "ID"
 msgstr "ID"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:47
+#: ckanext/validate/templates/admin/validation_jobs.html:52
 msgid "Resource"
 msgstr "Recurso"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:49
+#: ckanext/validate/templates/admin/validation_jobs.html:54
 msgid "Created"
 msgstr "Creado"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:50
+#: ckanext/validate/templates/admin/validation_jobs.html:55
 msgid "Finished"
 msgstr "Finalizado"
 
-#: ckanext/validate/templates/admin/validation_jobs.html:88
+#: ckanext/validate/templates/admin/validation_jobs.html:93
 msgid "No validation jobs found from the selected status."
 msgstr "No se encontraron trabajos de validación para el estado seleccionado."
 

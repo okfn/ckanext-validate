@@ -273,6 +273,7 @@ def normalize_format(resource_dict):
     """Return the resource format in lowercase, or empty string."""
     return (resource_dict.get("format") or "").strip().lower()
 
+
 def validation_error_message(error):
     error_dict = getattr(error, "error_dict", None) or {}
     messages = []
