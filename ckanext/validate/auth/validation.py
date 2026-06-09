@@ -30,7 +30,7 @@ def resource_validation_status(context, data_dict):
         toolkit.check_access("resource_show", context, data_dict)
     except toolkit.NotAuthorized:
         return {
-            "success": False, 
+            "success": False,
             "msg": toolkit._("Not authorized to view this resource")
         }
     return {"success": True}

@@ -53,6 +53,7 @@ def test_resource_validation_status_updates_from_pending_to_success():
     assert result["validation"]["status"] == "success"
     assert result["error_count"] == 0
 
+
 @pytest.mark.usefixtures("clean_db", "with_plugins")
 @pytest.mark.ckan_config("ckan.plugins", "validate")
 def test_resource_validation_status_prefers_pending_job_over_previous_validation():
