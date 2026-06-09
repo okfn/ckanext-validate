@@ -5,7 +5,7 @@ from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
-from ckanext.validate.helpers import collect_report_errors, normalize_format
+from ckanext.validate import helpers as h
 from ckanext.validate.model import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.resource_hooks import is_csv_resource
@@ -33,7 +33,7 @@ def resource_validate(context, data_dict):
         )
 
     is_uploaded = resource.get("url_type") == "upload"
-    fmt_lower = normalize_format(resource)
+    fmt_lower = h.normalize_format(resource)
     if is_uploaded:
         # TODO: Refactor to new file API when migrating to CKAN 2.12.
         upload = uploader.get_resource_uploader(resource)
@@ -67,7 +67,7 @@ def resource_validate(context, data_dict):
     )
 
     status = "success" if report.valid else "failure"
-    error_details = collect_report_errors(report)
+    error_details = h.collect_report_errors(report)
     error_count = len(error_details)
 
     Validation.create(
@@ -147,3 +147,31 @@ def validation_job_list(context, data_dict):
 
     jobs = ValidationJob.get_all(status=status, limit=limit)
     return [job.as_dict() for job in jobs]
+
+
+@toolkit.side_effect_free
+def resource_validation_status(context, data_dict):
+    resource_id = toolkit.get_or_bust(data_dict, "id")
+
+    toolkit.check_access(
+        "resource_validation_status",
+        context,
+        {"id": resource_id},
+    )
+
+    resource = toolkit.get_action("resource_show")(
+        {"ignore_auth": True},
+        {"id": resource_id},
+    )
+
+    record = Validation.get_latest(resource_id)
+    job_status = ValidationJob.get_latest_job_status_for_resource(resource_id)
+    state = h.get_resource_validation_state(resource) or "not_validated"
+
+    return {
+        "resource_id": resource_id,
+        "state": state,
+        "job_status": job_status,
+        "error_count": record.error_count if record else 0,
+        "validation": record.as_dict() if record else None,
+    }

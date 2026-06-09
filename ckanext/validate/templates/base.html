@@ -4,3 +4,8 @@
     {{ super() }}
     {% asset 'validate/validate-css' %}
 {% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% asset 'validate/validate-js' %}
+{% endblock %}

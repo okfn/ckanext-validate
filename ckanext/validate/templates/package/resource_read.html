@@ -9,26 +9,7 @@
            class="btn btn-default">
           <i class="fa fa-check-circle"></i>
           {{ _('Validate') }}
-          {% set status = h.get_resource_validation_state(res) %}
-          {% if status == 'success' %}
-            <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
-          {% elif status == 'failure' %}
-            <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-          {% elif status == 'error' %}
-            <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
-          {% elif status == 'pending' %}
-            <span class="validate-badge validate-badge--pending">
-              <i class="fa fa-spinner fa-spin"></i>
-              {{ _('Pending') }}
-            </span>
-          {% elif status == 'running' %}
-            <span class="validate-badge validate-badge--running">
-              <i class="fa fa-spinner fa-spin"></i>
-              {{ _('Running') }}
-            </span>
-          {% else %}
-            <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
-          {% endif %}
+          {% snippet 'validate/snippets/validation_badge.html', resource=res, package_id=pkg.id %}
         </a>
       </li>
     {% endif %}

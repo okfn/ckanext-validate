@@ -1,0 +1,43 @@
+{% set package_id = package_id if package_id is defined else resource.get('package_id') %}
+{% set can_validate = h.check_access('sysadmin') or (package_id and h.check_access('package_update', {'id': package_id})) %}
+
+{% if resource and resource.get('format') and resource.get('format')|upper == 'CSV' and can_validate %}
+  {% set status = h.get_resource_validation_state(resource) %}
+  {% set status_key = status or 'not_validated' %}
+
+  {% set badge_classes = {
+    'success': 'validate-badge--valid',
+    'failure': 'validate-badge--invalid',
+    'error': 'validate-badge--error',
+    'pending': 'validate-badge--pending',
+    'running': 'validate-badge--running',
+    'not_validated': 'validate-badge--pending'
+  } %}
+
+  {% set badge_labels = {
+    'success': _('Valid'),
+    'failure': _('Invalid'),
+    'error': _('Error'),
+    'pending': _('Pending'),
+    'running': _('Running'),
+    'not_validated': _('Not validated')
+  } %}
+
+  <span
+    class="validate-badge {{ badge_classes.get(status_key, 'validate-badge--pending') }} js-validation-status"
+    data-resource-id="{{ resource.id }}"
+    data-validation-state="{{ status_key }}"
+    data-validation-url="{{ h.url_for('api.action', ver=3, logic_function='resource_validation_status') }}"
+    data-label-success="{{ _('Valid') }}"
+    data-label-failure="{{ _('Invalid') }}"
+    data-label-error="{{ _('Error') }}"
+    data-label-pending="{{ _('Pending') }}"
+    data-label-running="{{ _('Running') }}"
+    data-label-not-validated="{{ _('Not validated') }}"
+  >
+    {% if status_key in ['pending', 'running'] %}
+      <i class="fa fa-spinner fa-spin"></i>
+    {% endif %}
+    {{ badge_labels.get(status_key, _('Not validated')) }}
+  </span>
+{% endif %}
