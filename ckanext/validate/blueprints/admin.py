@@ -35,7 +35,7 @@ def validation_jobs():
     )
 
     resource_show = toolkit.get_action("resource_show")
-    context = {"ignore_auth": True}
+    context = {"user": toolkit.current_user.name}
 
     def _enrich(job_dict):
         job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
