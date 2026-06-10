@@ -3,7 +3,5 @@
 {% block resource_item_title %}
   {{ super() }}
 
-  <!-- validate resource_item override active: res={{ res.id }} format={{ res.format }} package_id={{ res.package_id }} -->
-
   {% snippet 'validate/snippets/validation_badge.html', resource=res, package_id=res.package_id %}
 {% endblock %}
