@@ -30,7 +30,7 @@ def test_get_resource_validation_job_status_returns_none_without_resource():
     assert helpers.get_resource_validation_job_status({"name": "no-id"}) is None
 
 
-def test_get_resource_validation_state_prefers_validation_success_over_pending_job():
+def test_get_resource_validation_state_returns_pending_when_pending_job_exists_even_with_success_validation():
     resource_id = "res-success-over-pending"
 
     Validation.create(
@@ -41,10 +41,10 @@ def test_get_resource_validation_state_prefers_validation_success_over_pending_j
     )
     ValidationJob.create(resource_id=resource_id, status=JobStatus.QUEUED)
 
-    assert helpers.get_resource_validation_state({"id": resource_id}) == "success"
+    assert helpers.get_resource_validation_state({"id": resource_id}) == "pending"
 
 
-def test_get_resource_validation_state_prefers_validation_failure_over_running_job():
+def test_get_resource_validation_state_returns_running_when_running_job_exists_even_with_failure_validation():
     resource_id = "res-failure-over-running"
 
     Validation.create(
@@ -55,7 +55,7 @@ def test_get_resource_validation_state_prefers_validation_failure_over_running_j
     )
     ValidationJob.create(resource_id=resource_id, status=JobStatus.RUNNING)
 
-    assert helpers.get_resource_validation_state({"id": resource_id}) == "failure"
+    assert helpers.get_resource_validation_state({"id": resource_id}) == "running"
 
 
 def test_get_resource_validation_state_returns_pending_when_no_validation_and_job_is_pending():
