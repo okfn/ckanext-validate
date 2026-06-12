@@ -13,7 +13,3 @@ validate-css:
   contents:
     - css/validate.css
 
-validate-js:
-  output: ckanext-validate/%(version)s-validate.js
-  contents:
-    - js/validation_status_polling.js
