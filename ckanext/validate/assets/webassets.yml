@@ -12,4 +12,3 @@ validate-css:
   output: ckanext-validate/%(version)s-validate.css
   contents:
     - css/validate.css
-
