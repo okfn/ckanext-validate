@@ -177,3 +177,21 @@ def validate_test_file_view():
             "success": success,
         },
     )
+
+
+@resource_validate_blueprint.route(
+    "/resource/<resource_id>/validate/status", methods=["GET", "POST"]
+)
+def validate_status(resource_id):
+    try:
+        resource = toolkit.get_action("resource_show")(
+            {}, {"id": resource_id}
+        )
+    except toolkit.ObjectNotFound:
+        base.abort(404, toolkit._("Resource not found"))
+
+    return base.render(
+        "validate/snippets/validation_badge.html",
+        extra_vars={"resource": resource}
+            )
+

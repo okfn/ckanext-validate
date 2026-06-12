@@ -24,16 +24,12 @@
   } %}
 
   <span
-    class="validate-badge {{ badge_classes.get(status_key, 'validate-badge--pending') }} js-validation-status"
-    data-resource-id="{{ resource.id }}"
-    data-validation-state="{{ status_key }}"
-    data-validation-url="{{ h.url_for('api.action', ver=3, logic_function='resource_validation_status') }}"
-    data-label-success="{{ _('Valid') }}"
-    data-label-failure="{{ _('Invalid') }}"
-    data-label-error="{{ _('Error') }}"
-    data-label-pending="{{ _('Pending') }}"
-    data-label-running="{{ _('Running') }}"
-    data-label-not-validated="{{ _('Not validated') }}"
+    class="validate-badge {{ badge_classes.get(status_key, 'validate-badge--pending') }}"
+    hx-get="{{ h.url_for('resource_validate.validate_status', resource_id=resource.id) }}"
+    hx-swap="outerHTML"
+    {% if status_key in ['pending', 'running'] %}
+      hx-trigger="every 5s"
+    {% endif %}
   >
     {% if status_key in ['pending', 'running'] %}
       <i class="fa fa-spinner fa-spin"></i>
