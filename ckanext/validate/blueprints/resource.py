@@ -179,9 +179,7 @@ def validate_test_file_view():
     )
 
 
-@resource_validate_blueprint.route(
-    "/resource/<resource_id>/validate/status", methods=["GET", "POST"]
-)
+@resource_validate_blueprint.route("/resource/<resource_id>/validate/status", methods=["GET"])
 def validate_status(resource_id):
     try:
         resource = toolkit.get_action("resource_show")(
