@@ -22,3 +22,8 @@ def resource_validation_show(context, data_dict):
 def validation_job_list(context, data_dict):
     """Only sysadmins can list validation jobs."""
     return toolkit.check_access("sysadmin", context, data_dict)
+
+
+def resource_validation_status(context, data_dict):
+    """Only sysadmins can see the validation job status."""
+    return toolkit.check_access("sysadmin", context, data_dict)

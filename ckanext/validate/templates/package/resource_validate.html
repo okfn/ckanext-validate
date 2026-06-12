@@ -22,20 +22,7 @@
     <section class="validate-summary">
       <div class="validate-summary__top">
         <h2 class="validate-summary__title">{{ _('Current Status') }}</h2>
-
-        {% if status == 'pending' %}
-          <span class="validate-badge validate-badge--pending">{{ _('Pending') }}</span>
-        {% elif status == 'running' %}
-          <span class="validate-badge validate-badge--running">{{ _('Running') }}</span>
-        {% elif status == 'success' %}
-          <span class="validate-badge validate-badge--valid">{{ _('Valid') }}</span>
-        {% elif status == 'failure' %}
-          <span class="validate-badge validate-badge--invalid">{{ _('Invalid') }}</span>
-        {% elif status == 'error' %}
-          <span class="validate-badge validate-badge--error">{{ _('Error') }}</span>
-        {% else %}
-          <span class="validate-badge validate-badge--pending">{{ _('Not validated') }}</span>
-        {% endif %}
+        {% snippet 'validate/snippets/validation_badge.html', resource=res, package_id=pkg_dict.id %}
       </div>
 
       {% if validation_created %}

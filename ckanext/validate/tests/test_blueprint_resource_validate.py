@@ -43,6 +43,11 @@ def disable_auto_validation(monkeypatch):
 @pytest.mark.usefixtures("with_plugins")
 class TestResourceValidateGet:
 
+    @pytest.fixture
+    def sysadmin_headers(self):
+        sysadmin = factories.SysadminWithToken()
+        return {"Authorization": sysadmin["token"]}
+
     def test_get_renders_validation_page_with_resource_name(self, app):
         dataset = factories.Dataset()
         resource = factories.Resource(
@@ -54,58 +59,58 @@ class TestResourceValidateGet:
         assert "Resource Validation" in response
         assert "my-resource" in response
 
-    def test_get_shows_not_validated_badge_when_no_record(self, app):
+    def test_get_shows_not_validated_badge_when_no_record(self, app, sysadmin_headers):
         dataset = factories.Dataset()
         resource = factories.Resource(package_id=dataset["id"], format="CSV")
 
-        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200)
+        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200, headers=sysadmin_headers)
 
         assert "validate-badge--pending" in response
         assert "Not validated" in response
 
-    def test_get_shows_valid_badge_when_status_success(self, app):
+    def test_get_shows_valid_badge_when_status_success(self, app, sysadmin_headers):
         dataset = factories.Dataset()
         resource = factories.Resource(package_id=dataset["id"], format="CSV")
         Validation.create(
             resource_id=resource["id"], status="success", error_count=0, errors=[]
         )
 
-        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200)
+        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200, headers=sysadmin_headers)
 
         assert "validate-badge--valid" in response
 
-    def test_get_shows_invalid_badge_and_count_when_status_failure(self, app):
+    def test_get_shows_invalid_badge_and_count_when_status_failure(self, app, sysadmin_headers):
         dataset = factories.Dataset()
         resource = factories.Resource(package_id=dataset["id"], format="CSV")
         Validation.create(
             resource_id=resource["id"], status="failure", error_count=4, errors=[]
         )
 
-        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200)
+        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200, headers=sysadmin_headers)
 
         assert "validate-badge--invalid" in response
         assert "4" in response
 
-    def test_get_shows_pending_badge_when_status_pending(self, app):
+    def test_get_shows_pending_badge_when_status_pending(self, app, sysadmin_headers):
         dataset = factories.Dataset()
         resource = factories.Resource(package_id=dataset["id"], format="CSV")
         Validation.create(
             resource_id=resource["id"], status="pending", error_count=0, errors=[]
         )
 
-        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200)
+        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200, headers=sysadmin_headers)
 
         assert "validate-badge--pending" in response
         assert "Pending" in response
 
-    def test_get_shows_error_badge_when_status_error(self, app):
+    def test_get_shows_error_badge_when_status_error(self, app, sysadmin_headers):
         dataset = factories.Dataset()
         resource = factories.Resource(package_id=dataset["id"], format="CSV")
         Validation.create(
             resource_id=resource["id"], status="error", error_count=0, errors=[]
         )
 
-        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200)
+        response = app.get(_validate_url(dataset["name"], resource["id"]), status=200, headers=sysadmin_headers)
 
         assert "validate-badge--error" in response
 

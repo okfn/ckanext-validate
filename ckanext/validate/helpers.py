@@ -239,11 +239,12 @@ def get_resource_validation_state(resource_dict):
     if not resource_dict:
         return None
 
-    status = Validation.get_resource_status(resource_dict.get("id"))
-    if status:
-        return status
+    resource_id = resource_dict.get("id")
+    if not resource_id:
+        return None
 
     job_status = get_resource_validation_job_status(resource_dict)
+
     if job_status in JobStatus.pending_statuses():
         return "pending"
 
@@ -252,6 +253,10 @@ def get_resource_validation_state(resource_dict):
 
     if job_status in JobStatus.error_statuses():
         return "error"
+
+    status = Validation.get_resource_status(resource_id)
+    if status:
+        return status
 
     return None
 

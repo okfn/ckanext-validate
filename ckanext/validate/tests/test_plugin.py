@@ -83,6 +83,7 @@ def test_plugin_registers_expected_actions():
         "resource_validate": validate_action.resource_validate,
         "resource_validation_show": validate_action.resource_validation_show,
         "validation_job_list": validate_action.validation_job_list,
+        "resource_validation_status": validate_action.resource_validation_status,
     }
 
 
@@ -93,6 +94,7 @@ def test_plugin_registers_expected_auth_functions():
         "resource_validate": validate_auth.resource_validate,
         "resource_validation_show": validate_auth.resource_validation_show,
         "validation_job_list": validate_auth.validation_job_list,
+        "resource_validation_status": validate_auth.resource_validation_status,
     }
 
 
