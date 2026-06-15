@@ -1,6 +1,6 @@
 import logging
 
-from frictionless import system, Resource
+from frictionless import system, describe
 from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
@@ -9,6 +9,7 @@ from ckanext.validate import helpers as h
 from ckanext.validate.model import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.resource_hooks import is_csv_resource
+from ckanext.validate.detector import MajorityDetector
 
 
 log = logging.getLogger(__name__)
@@ -47,20 +48,52 @@ def resource_validate(context, data_dict):
     )
 
     try:
+        detector = MajorityDetector(
+            field_confidence=0.5,
+            sample_size=1000,
+        )
+        log.info(
+            "Using MajorityDetector with field_confidence=%s",
+            detector.field_confidence,
+        )
+        log.debug(
+            "Using frictionless Detector with detector=%s for resource %s",
+            detector, resource_id,
+        )
+
         if is_uploaded:
             with system.use_context(trusted=True):
-                res = Resource(source, format=fmt_lower)
+                res = describe(
+                    source,
+                    format=fmt_lower,
+                    detector=detector,
+                )
                 report = res.validate()
         else:
-            res = Resource(source, format=fmt_lower)
+            res = describe(
+                source,
+                format=fmt_lower,
+                detector=detector,
+            )
             report = res.validate()
 
     except Exception as exc:
-        log.exception("Frictionless raised an exception for resource %s", resource_id)
-        raise toolkit.ValidationError(
-            {"frictionless": [toolkit._("System error: {0}").format(str(exc))]}
+        log.exception(
+            "Frictionless raised an exception for resource %s",
+            resource_id,
         )
-
+        raise toolkit.ValidationError(
+            {
+                "frictionless": [
+                    toolkit._("System error: {0}").format(str(exc))
+                ]
+            }
+        )
+    log.info(
+        "Inferred schema for resource %s: %s",
+        resource_id,
+        res.schema.to_descriptor(),
+    )
     log.info(
         "Frictionless validation completed for resource %s: valid=%s",
         resource_id, report.valid,
