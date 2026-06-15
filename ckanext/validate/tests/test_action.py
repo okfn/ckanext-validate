@@ -87,7 +87,16 @@ def test_resource_validate_collects_task_errors(monkeypatch):
         def validate(self):
             return report
 
-    monkeypatch.setattr(validate_action, "Resource", InvalidResource)
+    mock_resource = InvalidResource(resource["url"], "csv")
+    mock_resource.schema = SimpleNamespace(
+        to_descriptor=lambda: {"fields": []}
+    )
+
+    monkeypatch.setattr(
+        validate_action,
+        "describe",
+        lambda *args, **kwargs: mock_resource,
+    )
 
     result = validate_action.resource_validate(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
@@ -117,7 +126,16 @@ def test_resource_validate_adds_structural_error_when_report_has_no_task_errors(
         def validate(self):
             return DummyReport(valid=False, tasks=[])
 
-    monkeypatch.setattr(validate_action, "Resource", StructuralResource)
+    mock_resource = StructuralResource(resource["url"], "csv")
+    mock_resource.schema = SimpleNamespace(
+        to_descriptor=lambda: {"fields": []}
+    )
+
+    monkeypatch.setattr(
+        validate_action,
+        "describe",
+        lambda *args, **kwargs: mock_resource,
+    )
 
     result = validate_action.resource_validate(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
@@ -154,7 +172,13 @@ def test_resource_validate_wraps_frictionless_exceptions(monkeypatch):
         def validate(self):
             raise RuntimeError("boom")
 
-    monkeypatch.setattr(validate_action, "Resource", BrokenResource)
+    mock_resource = BrokenResource(resource["url"], "csv")
+
+    monkeypatch.setattr(
+        validate_action,
+        "describe",
+        lambda *args, **kwargs: mock_resource,
+    )
 
     with pytest.raises(toolkit.ValidationError) as exc:
         validate_action.resource_validate(

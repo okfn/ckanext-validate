@@ -15,13 +15,12 @@ Flask-WTF CSRF protection is automatically bypassed for POST requests.
 """
 
 import pytest
+from pathlib import Path
 
 from ckan.tests import factories
 
-from ckanext.validate.actions import action as validate_action
 from ckanext.validate.model.validation import Validation
 from ckanext.validate import resource_hooks
-from .conftest import DummyReport, DummyResource
 
 
 def _validate_url(package_name, resource_id):
@@ -33,6 +32,8 @@ def disable_auto_validation(monkeypatch):
     """Prevent auto-validation hooks from firing when factories create CSV resources."""
     monkeypatch.setattr(resource_hooks, "handle_resource_change", lambda *a, **kw: False)
 
+
+FIXTURES_DIR = Path(__file__).parent / "files_test"
 
 # ---------------------------------------------------------------------------
 # GET tests
@@ -160,18 +161,15 @@ class TestResourceValidatePost:
         assert "Not authorized" in response
 
     def test_post_renders_valid_badge_after_successful_validation(
-        self, app, monkeypatch, sysadmin_headers
+        self, app, sysadmin_headers
     ):
         dataset = factories.Dataset()
         resource = factories.Resource(
-            package_id=dataset["id"], format="CSV", url_type="", url="https://example.com/valid.csv"
+            package_id=dataset["id"],
+            format="CSV",
+            url_type="",
+            url=(FIXTURES_DIR / "valid.csv").resolve().as_uri(),
         )
-
-        class ValidResource(DummyResource):
-            def validate(self):
-                return DummyReport(valid=True, tasks=[])
-
-        monkeypatch.setattr(validate_action, "Resource", ValidResource)
 
         response = app.post(
             _validate_url(dataset["name"], resource["id"]),
@@ -183,22 +181,15 @@ class TestResourceValidatePost:
         assert "validate-badge--valid" in response
 
     def test_post_renders_invalid_badge_after_failed_validation(
-        self, app, monkeypatch, sysadmin_headers
+        self, app, sysadmin_headers
     ):
-        from types import SimpleNamespace
-
         dataset = factories.Dataset()
         resource = factories.Resource(
-            package_id=dataset["id"], format="CSV", url_type="", url="https://example.com/bad.csv"
+            package_id=dataset["id"],
+            format="CSV",
+            url_type="",
+            url=(FIXTURES_DIR / "so-wrong.csv").resolve().as_uri(),
         )
-
-        err = SimpleNamespace(row_number=2, field_name="price", message="type error")
-
-        class InvalidResource(DummyResource):
-            def validate(self):
-                return DummyReport(valid=False, tasks=[SimpleNamespace(errors=[err])])
-
-        monkeypatch.setattr(validate_action, "Resource", InvalidResource)
 
         response = app.post(
             _validate_url(dataset["name"], resource["id"]),
