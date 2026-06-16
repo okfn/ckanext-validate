@@ -70,14 +70,14 @@ class TestTestFileViewAccess:
 
 
 def _mock_frictionless(monkeypatch, report):
-    """Patch frictionless Resource and system inside the blueprint module."""
+    """Patch frictionless describe and system inside the blueprint module."""
 
     class _FakeResource:
-        def __init__(self, *a, **kw):
-            pass
-
         def validate(self):
             return report
+
+    def fake_describe(*args, **kwargs):
+        return _FakeResource()
 
     ctx_mgr = mock.MagicMock()
     ctx_mgr.__enter__.return_value = ctx_mgr
@@ -86,7 +86,7 @@ def _mock_frictionless(monkeypatch, report):
     fake_system = mock.MagicMock()
     fake_system.use_context.return_value = ctx_mgr
 
-    monkeypatch.setattr(validate_resource, "Resource", _FakeResource)
+    monkeypatch.setattr(validate_resource, "describe", fake_describe)
     monkeypatch.setattr(validate_resource, "system", fake_system)
 
 
@@ -217,14 +217,14 @@ class TestTestFileViewPost:
     def test_post_validation_exception_shows_system_error(
         self, app, monkeypatch, auth_headers
     ):
-        class BrokenResource:
-            def __init__(self, *args, **kwargs):
-                pass
+        def broken_describe(*args, **kwargs):
+            class BrokenResource:
+                def validate(self):
+                    raise RuntimeError("boom")
 
-            def validate(self):
-                raise RuntimeError("boom")
+            return BrokenResource()
 
-        monkeypatch.setattr(validate_resource, "Resource", BrokenResource)
+        monkeypatch.setattr(validate_resource, "describe", broken_describe)
 
         data = {
             "file": (
@@ -242,3 +242,38 @@ class TestTestFileViewPost:
         )
 
         assert "System error during validation: boom" in response
+
+
+    def test_post_mostly_numeric_column_with_text_is_invalid(
+        self, app, auth_headers
+    ):
+        csv_content = (
+            b"MONTO_PRESUPUESTADO\n"
+            b"Twelve'\n"
+            b"20000\n"
+            b"8182.8\n"
+            b"Twelve'\n"
+            b"250000\n"
+            b"150000\n"
+            b"27500\n"
+            b"970000\n"
+        )
+
+        data = {
+            "file": (
+                io.BytesIO(csv_content),
+                "mostly_numeric.csv",
+            )
+        }
+
+        response = app.post(
+            TEST_FILE_URL,
+            data=data,
+            headers=auth_headers,
+            content_type="multipart/form-data",
+            status=200,
+        )
+
+        assert "validate-badge--invalid" in response
+        assert "MONTO_PRESUPUESTADO" in response
+        assert "type-error" in response or "Type error" in response
