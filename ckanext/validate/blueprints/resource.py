@@ -3,13 +3,14 @@ import os
 import tempfile
 
 from flask import Blueprint
-from frictionless import Resource, system
+from frictionless import Resource, system, describe
 
 from ckan.lib import base
 from ckan.plugins import toolkit
 
 from ckanext.validate import helpers as h
 from ckanext.validate.model.validation import Validation
+from ckanext.validate.detector import MajorityDetector
 
 log = logging.getLogger(__name__)
 
@@ -145,7 +146,15 @@ def validate_test_file_view():
             uploaded_file.save(tmp_path)
 
             with system.use_context(trusted=True):
-                res = Resource("file://" + tmp_path, format="csv")
+                detector = MajorityDetector(
+                    field_confidence=0.5,
+                    sample_size=1000,
+                )
+                res = describe(
+                    "file://" + tmp_path,
+                    format="csv",
+                    detector=detector,
+                )
                 report = res.validate()
 
             report_valid = report.valid
