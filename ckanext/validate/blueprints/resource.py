@@ -3,7 +3,7 @@ import os
 import tempfile
 
 from flask import Blueprint
-from frictionless import Resource, system, describe
+from frictionless import system, describe
 
 from ckan.lib import base
 from ckan.plugins import toolkit
