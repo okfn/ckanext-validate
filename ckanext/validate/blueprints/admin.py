@@ -35,9 +35,10 @@ def validation_jobs():
     )
 
     resource_show = toolkit.get_action("resource_show")
-    context = {"user": toolkit.current_user.name}
 
     def _enrich(job_dict):
+        context = {"user": toolkit.current_user.name}
+
         job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
         job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
         try:

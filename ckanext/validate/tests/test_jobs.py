@@ -1,10 +1,12 @@
 import datetime
+import pytest
 
 from types import SimpleNamespace
 
 from ckanext.validate import jobs
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.tests.conftest import status_value
+from ckanext.validate.blueprints import admin
 
 
 def test_run_resource_validation_job_updates_only_the_target_job_record(monkeypatch):
@@ -202,4 +204,71 @@ def test_run_resource_validation_job_returns_early_when_job_record_does_not_exis
     assert resource_validate_called == []
     assert state_calls == [
         ("update_by_id", 321, JobStatus.RUNNING),
+    ]
+
+
+@pytest.mark.ckan_config("ckan.plugins", "validate")
+@pytest.mark.usefixtures("with_plugins")
+def test_validation_jobs_uses_fresh_context_for_each_resource(app, monkeypatch):
+    """Ensure each resource_show call gets a fresh context.
+
+    CKAN actions may mutate the context during execution, so the admin view
+    must not reuse the same context across consecutive resource_show calls.
+    """
+    job_1 = ValidationJob.create(
+        resource_id="resource-1",
+        status=JobStatus.FINISHED,
+    )
+    job_2 = ValidationJob.create(
+        resource_id="resource-2",
+        status=JobStatus.FINISHED,
+    )
+
+    monkeypatch.setattr(
+        admin.toolkit,
+        "current_user",
+        SimpleNamespace(name="sysadmin", sysadmin=True),
+    )
+    monkeypatch.setattr(
+        admin.ValidationJob,
+        "get_all",
+        lambda status=None, limit=100: [job_1, job_2],
+    )
+    monkeypatch.setattr(
+        admin.toolkit,
+        "url_for",
+        lambda *args, **kwargs: f"/resource/{kwargs['resource_id']}",
+    )
+
+    contexts = []
+
+    def fake_resource_show(context, data_dict):
+        contexts.append(dict(context))
+
+        # Simulate CKAN actions mutating the context during execution.
+        context["dirty"] = True
+
+        return {
+            "id": data_dict["id"],
+            "name": data_dict["id"],
+            "package_id": "dataset-1",
+        }
+
+    def fake_get_action(action_name):
+        assert action_name == "resource_show"
+        return fake_resource_show
+
+    monkeypatch.setattr(admin.toolkit, "get_action", fake_get_action)
+    monkeypatch.setattr(
+        admin.base,
+        "render",
+        lambda template, extra_vars: "ok",
+    )
+
+    response = app.get("/ckan-admin/validation-jobs")
+
+    assert response.status_code == 200
+    assert contexts == [
+        {"user": "sysadmin"},
+        {"user": "sysadmin"},
     ]
