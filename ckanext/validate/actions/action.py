@@ -14,9 +14,6 @@ from ckanext.validate.detector import MajorityDetector
 
 log = logging.getLogger(__name__)
 
-DETECTOR_FIELD_CONFIDENCE = 0.5
-DETECTOR_SAMPLE_SIZE = 1000
-
 
 def resource_validate(context, data_dict):
     """Validate a CSV resource using frictionless and store the result.
@@ -51,16 +48,7 @@ def resource_validate(context, data_dict):
     )
 
     try:
-        detector = MajorityDetector(
-            # TODO: Make field_confidence and sample_size configurable if needed in the future.
-            field_confidence=DETECTOR_FIELD_CONFIDENCE,
-            sample_size=DETECTOR_SAMPLE_SIZE,
-        )
-        log.info(
-            "Using MajorityDetector with field_confidence=%s and sample_size=%s",
-            detector.field_confidence,
-            detector.sample_size,
-        )
+        detector = MajorityDetector()
 
         if is_uploaded:
             with system.use_context(trusted=True):

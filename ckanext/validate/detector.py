@@ -1,8 +1,18 @@
 from frictionless import Detector, Field, Schema, settings
 
 
+DETECTOR_FIELD_CONFIDENCE = 0.5
+DETECTOR_SAMPLE_SIZE = 1000
+
+
 class MajorityDetector(Detector):
     """Infer field types using all values available in the sample."""
+
+    def __init__(self):
+        super().__init__(
+            field_confidence=DETECTOR_FIELD_CONFIDENCE,
+            sample_size=DETECTOR_SAMPLE_SIZE,
+        )
 
     def detect_schema(
         self,

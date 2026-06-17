@@ -243,7 +243,6 @@ class TestTestFileViewPost:
 
         assert "System error during validation: boom" in response
 
-
     def test_post_mostly_numeric_column_with_text_is_invalid(
         self, app, auth_headers
     ):

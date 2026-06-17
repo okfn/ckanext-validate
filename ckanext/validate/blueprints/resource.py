@@ -146,10 +146,7 @@ def validate_test_file_view():
             uploaded_file.save(tmp_path)
 
             with system.use_context(trusted=True):
-                detector = MajorityDetector(
-                    field_confidence=0.5,
-                    sample_size=1000,
-                )
+                detector = MajorityDetector()
                 res = describe(
                     "file://" + tmp_path,
                     format="csv",
