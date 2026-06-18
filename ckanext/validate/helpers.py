@@ -1,6 +1,9 @@
+import csv
 from datetime import datetime
 
 from collections import OrderedDict
+from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import ckan.plugins.toolkit as toolkit
 
@@ -9,6 +12,7 @@ from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 
 MAX_ERROR_ROWS_PER_GROUP = 20
+INVALID_NULL_VALUES = {"null", "none"}
 
 
 def collect_report_errors(report):
@@ -290,3 +294,73 @@ def validation_error_message(error):
             messages.append(str(value))
 
     return "; ".join(messages) or str(error)
+
+
+def _is_invalid_null_value(value):
+    return str(value).strip().lower() in INVALID_NULL_VALUES
+
+
+def _source_to_local_path(source):
+    parsed = urlparse(source)
+
+    if parsed.scheme == "file":
+        return Path(unquote(parsed.path))
+
+    if not parsed.scheme:
+        return Path(source)
+
+    return None
+
+
+def detect_invalid_null_values(source):
+    path = _source_to_local_path(source)
+    if path is None:
+        return []
+
+    errors = []
+
+    with path.open(newline="", encoding="utf-8-sig", errors="replace") as csv_file:
+        sample = csv_file.read(4096)
+        csv_file.seek(0)
+
+        try:
+            dialect = csv.Sniffer().sniff(sample)
+        except csv.Error:
+            dialect = csv.excel
+
+        reader = csv.reader(csv_file, dialect=dialect)
+
+        try:
+            labels = next(reader)
+        except StopIteration:
+            return []
+
+        for row_number, cells in enumerate(reader, start=2):
+            for field_number, value in enumerate(cells, start=1):
+                if not _is_invalid_null_value(value):
+                    continue
+
+                field_name = (
+                    labels[field_number - 1]
+                    if field_number <= len(labels)
+                    else None
+                )
+
+                errors.append(
+                    {
+                        "type": "invalid-null-value",
+                        "title": toolkit._("Invalid null value"),
+                        "description": toolkit._(
+                            "The values 'null', 'NULL' and 'None' are not allowed."
+                        ),
+                        "message": toolkit._("Invalid null-like value found."),
+                        "rowNumber": row_number,
+                        "rowNumbers": [row_number],
+                        "fieldName": field_name,
+                        "fieldNumber": field_number,
+                        "cells": cells,
+                        "labels": labels,
+                    }
+                )
+
+    return errors

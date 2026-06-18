@@ -66,8 +66,18 @@ def resource_validate(context, data_dict):
         resource_id, report.valid,
     )
 
-    status = "success" if report.valid else "failure"
     error_details = h.collect_report_errors(report)
+    invalid_null_errors = h.detect_invalid_null_values(source)
+
+    if invalid_null_errors:
+        log.info(
+            "Invalid null-like values found for resource %s: errors=%d",
+            resource_id,
+            len(invalid_null_errors),
+        )
+        error_details.extend(invalid_null_errors)
+
+    status = "success" if report.valid and not invalid_null_errors else "failure"
     error_count = len(error_details)
 
     Validation.create(

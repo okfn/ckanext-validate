@@ -365,3 +365,42 @@ def test_validation_job_list_returns_expected_fields(make_validation_job):
     assert set(job.keys()) == {"id", "resource_id", "status", "created", "finished"}
     assert job["resource_id"] == resource["id"]
     assert job["status"] == "finished"
+
+
+def test_resource_validate_marks_null_like_values_as_failure(tmp_path):
+    csv_file = tmp_path / "null-values.csv"
+    csv_file.write_text(
+        "name,observacion,empty_allowed\n"
+        "Alice,null,\n"
+        "Bob,   ,   \n"
+        "Carla,None,text\n"
+        "Dora,NULL,text\n",
+        encoding="utf-8",
+    )
+
+    resource = factories.Resource(
+        format="CSV",
+        url_type="",
+        url=csv_file.resolve().as_uri(),
+    )
+    sysadmin = factories.Sysadmin()
+
+    result = validate_action.resource_validate(
+        {"user": sysadmin["name"]}, {"id": resource["id"]}
+    )
+
+    assert result["id"] == resource["id"]
+
+    record = Validation.get_latest(resource["id"])
+    assert record is not None
+    assert record.status == "failure"
+
+    null_errors = [
+        error
+        for error in record.errors
+        if error.get("type") == "invalid-null-value"
+    ]
+
+    assert len(null_errors) == 3
+    assert {error["rowNumber"] for error in null_errors} == {2, 4, 5}
+    assert {error["fieldName"] for error in null_errors} == {"observacion"}
