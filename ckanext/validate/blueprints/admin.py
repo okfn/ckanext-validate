@@ -17,10 +17,7 @@ validation_jobs_blueprint = Blueprint(
 
 @validation_jobs_blueprint.route("/ckan-admin/validation-jobs", methods=["GET"])
 def validation_jobs():
-    context = {
-        "user": toolkit.current_user.name,
-        "auth_user_obj": toolkit.current_user,
-    }
+    context = {"user": toolkit.current_user.name}
 
     try:
         toolkit.check_access("sysadmin", context)
@@ -44,10 +41,7 @@ def validation_jobs():
     resource_show = toolkit.get_action("resource_show")
 
     def _enrich(job_dict):
-        context = {
-            "user": toolkit.current_user.name,
-            "auth_user_obj": toolkit.current_user,
-        }
+        context = {"user": toolkit.current_user.name}
 
         job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
         job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
