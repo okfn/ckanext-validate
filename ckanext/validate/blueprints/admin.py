@@ -17,14 +17,13 @@ validation_jobs_blueprint = Blueprint(
 
 @validation_jobs_blueprint.route("/ckan-admin/validation-jobs", methods=["GET"])
 def validation_jobs():
+    context = {
+        "user": toolkit.current_user.name,
+        "auth_user_obj": toolkit.current_user,
+    }
+
     try:
-        toolkit.check_access(
-            "sysadmin",
-            {
-                "user": toolkit.current_user.name,
-                "auth_user_obj": toolkit.current_user,
-            },
-        )
+        toolkit.check_access("sysadmin", context)
     except toolkit.NotAuthorized:
         base.abort(403, toolkit._("Need to be system administrator to administer"))
 
