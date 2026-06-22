@@ -17,7 +17,11 @@ validation_jobs_blueprint = Blueprint(
 
 @validation_jobs_blueprint.route("/ckan-admin/validation-jobs", methods=["GET"])
 def validation_jobs():
-    if not getattr(toolkit.current_user, "sysadmin", False):
+    context = {"user": toolkit.current_user.name}
+
+    try:
+        toolkit.check_access("sysadmin", context)
+    except toolkit.NotAuthorized:
         base.abort(403, toolkit._("Need to be system administrator to administer"))
 
     available_statuses = [status.value for status in JobStatus]
@@ -41,6 +45,7 @@ def validation_jobs():
 
         job_dict["created"] = format_timestamp_for_display(job_dict.get("created"))
         job_dict["finished"] = format_timestamp_for_display(job_dict.get("finished"))
+
         try:
             resource = resource_show(context, {"id": job_dict["resource_id"]})
             job_dict["resource_name"] = (
