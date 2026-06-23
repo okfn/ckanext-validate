@@ -3,12 +3,12 @@ import os
 import tempfile
 
 from flask import Blueprint
-from frictionless import Resource, system
 
 from ckan.lib import base
 from ckan.plugins import toolkit
 
 from ckanext.validate import helpers as h
+from ckanext.validate.actions.action import get_validation_report
 from ckanext.validate.model.validation import Validation
 
 log = logging.getLogger(__name__)
@@ -144,9 +144,7 @@ def validate_test_file_view():
         try:
             uploaded_file.save(tmp_path)
 
-            with system.use_context(trusted=True):
-                res = Resource("file://" + tmp_path, format="csv")
-                report = res.validate()
+            report = get_validation_report("file://" + tmp_path, format="csv")
 
             report_valid = report.valid
             errors = h.collect_report_errors(report)
