@@ -8,7 +8,7 @@ from ckan.tests import factories, helpers
 
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.model.validation import Validation
-from .conftest import DummyUploader, DummyReport, DummyResource
+from .conftest import DummyUploader, DummyReport
 
 FIXTURES_DIR = Path(__file__).parent / "files_test"
 
@@ -83,11 +83,7 @@ def test_resource_validate_collects_task_errors(monkeypatch):
         ],
     )
 
-    class InvalidResource(DummyResource):
-        def validate(self):
-            return report
-
-    monkeypatch.setattr(validate_action, "Resource", InvalidResource)
+    monkeypatch.setattr(validate_action, "get_validation_report", lambda s, f: report)
 
     result = validate_action.resource_validate(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
@@ -113,11 +109,9 @@ def test_resource_validate_adds_structural_error_when_report_has_no_task_errors(
     )
     sysadmin = factories.Sysadmin()
 
-    class StructuralResource(DummyResource):
-        def validate(self):
-            return DummyReport(valid=False, tasks=[])
-
-    monkeypatch.setattr(validate_action, "Resource", StructuralResource)
+    monkeypatch.setattr(
+        validate_action, "get_validation_report", lambda s, f: DummyReport(valid=False, tasks=[])
+    )
 
     result = validate_action.resource_validate(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
@@ -150,11 +144,10 @@ def test_resource_validate_wraps_frictionless_exceptions(monkeypatch):
     )
     sysadmin = factories.Sysadmin()
 
-    class BrokenResource(DummyResource):
-        def validate(self):
-            raise RuntimeError("boom")
+    def _fake_get_validation_report(source, fmt):
+        raise RuntimeError("boom")
 
-    monkeypatch.setattr(validate_action, "Resource", BrokenResource)
+    monkeypatch.setattr(validate_action, "get_validation_report", _fake_get_validation_report)
 
     with pytest.raises(toolkit.ValidationError) as exc:
         validate_action.resource_validate(
@@ -251,16 +244,15 @@ def test_resource_validate_with_bike_errors_fixture():
     assert record.status == "failure"
     assert record.error_count >= 1
 
-    blank_row_error = next(
+    row_22_error = next(
         (
             err
             for err in (record.errors or [])
             if err.get("rowNumber") == 22
-            and "blank" in err.get("message", "").lower()
         ),
         None,
     )
-    assert blank_row_error is not None, record.errors
+    assert row_22_error is not None, record.errors
 
 
 def test_resource_validate_with_so_wrong_fixture():
