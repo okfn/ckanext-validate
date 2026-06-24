@@ -17,6 +17,7 @@ Flask-WTF CSRF protection is automatically bypassed for POST requests.
 """
 
 import io
+import os
 import pytest
 from types import SimpleNamespace
 
@@ -232,3 +233,35 @@ class TestTestFileViewPost:
         )
 
         assert "System error during validation: boom" in response
+
+    def test_post_mostly_numeric_column_with_text_is_invalid_from_file(
+        self, app, auth_headers
+    ):
+        """Regression test for #202: a mostly-numeric column with a text value
+        should be treated as a type error, not a structural error."""
+
+        csv_path = os.path.join(
+            os.path.dirname(__file__), "files_test", "test_num_field.csv"
+        )
+        with open(csv_path, "rb") as f:
+            csv_bytes = f.read()
+
+        data = {
+            "file": (
+                io.BytesIO(csv_bytes),
+                "test_num_field.csv",
+            )
+        }
+
+        response = app.post(
+            TEST_FILE_URL,
+            data=data,
+            headers=auth_headers,
+            content_type="multipart/form-data",
+            status=200,
+        )
+
+        assert "validate-badge--invalid" in response
+        assert "MONTO_PRESUPUESTADO" in response
+        assert "type-error" in response or "Type error" in response
+        assert "Twelve" in response
