@@ -1,6 +1,6 @@
 [project]
 name = "ckanext-validate"
-version = "0.1.0"
+version = "0.4.0"
 description = "A Simple CKAN extension to validate tabular data."
 readme = "README.md"
 authors = [
