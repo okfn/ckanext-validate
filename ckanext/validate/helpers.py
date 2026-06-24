@@ -149,26 +149,47 @@ def _preview_for_general_rows(items):
         max((item["field_number"] or 0 for item in items), default=0),
     )
 
-    rows = []
-    for item in items:
-        cells = []
-        raw_cells = item["cells"]
+    rows_by_key = OrderedDict()
 
-        for index in range(max_columns):
-            if index < len(raw_cells):
-                cells.append(raw_cells[index] or "")
+    for index, item in enumerate(items):
+        row_number = item["row_number"]
+
+        # Merge only real data rows. If row_number is None, keep the item
+        # separated to avoid collapsing structural/non-row errors together.
+        row_key = ("row", row_number) if row_number is not None else ("item", index)
+
+        raw_cells = item["cells"]
+        cells = []
+        for column_index in range(max_columns):
+            if column_index < len(raw_cells):
+                cells.append(raw_cells[column_index] or "")
             else:
                 cells.append("")
 
-        highlight_columns = []
-        if item["field_number"]:
-            highlight_columns = [item["field_number"]]
+        if row_key not in rows_by_key:
+            rows_by_key[row_key] = {
+                "row_number": row_number,
+                "cells": cells,
+                "highlight_columns": set(),
+            }
+        else:
+            # Keep the first row representation, but fill missing cells if a
+            # later error has more complete data for the same row.
+            existing_cells = rows_by_key[row_key]["cells"]
+            for column_index, cell in enumerate(cells):
+                if not existing_cells[column_index] and cell:
+                    existing_cells[column_index] = cell
 
+        if item["field_number"]:
+            rows_by_key[row_key]["highlight_columns"].add(item["field_number"])
+
+    rows = []
+    for row in rows_by_key.values():
         rows.append(
             {
-                "row_number": item["row_number"],
-                "cells": cells,
-                "highlight_columns": highlight_columns,
+                "row_number": row["row_number"],
+                "cells": row["cells"],
+                "highlight_columns": sorted(row["highlight_columns"]),
             }
         )
 

@@ -4,6 +4,7 @@ from ckanext.validate import helpers
 from ckanext.validate.model.validation import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.tests.conftest import status_value
+from ckanext.validate import helpers as h
 
 
 @pytest.mark.parametrize("job_status", list(JobStatus.error_statuses()))
@@ -89,3 +90,40 @@ def test_get_resource_validation_job_status_returns_latest_job_status():
     status = helpers.get_resource_validation_job_status({"id": resource_id})
 
     assert status_value(status) == "running"
+
+
+def test_group_validation_errors_merges_preview_rows_with_multiple_column_errors():
+    errors = [
+        {
+            "type": "type-error",
+            "title": "Type Error",
+            "message": "Column 2 is invalid",
+            "rowNumber": 12,
+            "fieldNumber": 2,
+            "cells": ["501247-540", "bad", "501247", "also bad"],
+        },
+        {
+            "type": "type-error",
+            "title": "Type Error",
+            "message": "Column 4 is invalid",
+            "rowNumber": 12,
+            "fieldNumber": 4,
+            "cells": ["501247-540", "bad", "501247", "also bad"],
+        },
+        {
+            "type": "type-error",
+            "title": "Type Error",
+            "message": "Column 3 is invalid",
+            "rowNumber": 13,
+            "fieldNumber": 3,
+            "cells": ["501247-541", "ok", "bad", "ok"],
+        },
+    ]
+
+    groups = h.group_validation_errors(errors)
+
+    preview_rows = groups[0]["preview"]["rows"]
+
+    assert [row["row_number"] for row in preview_rows] == [12, 13]
+    assert preview_rows[0]["highlight_columns"] == [2, 4]
+    assert preview_rows[1]["highlight_columns"] == [3]

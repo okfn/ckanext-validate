@@ -190,4 +190,3 @@ def validate_status(resource_id):
         "validate/snippets/validation_badge.html",
         extra_vars={"resource": resource}
             )
-
