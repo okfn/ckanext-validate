@@ -19,7 +19,6 @@ Flask-WTF CSRF protection is automatically bypassed for POST requests.
 import io
 import pytest
 from types import SimpleNamespace
-from unittest import mock
 
 from ckan.tests import factories
 
@@ -70,25 +69,16 @@ class TestTestFileViewAccess:
 
 
 def _mock_frictionless(monkeypatch, report):
-    """Patch frictionless Resource and system inside the blueprint module."""
+    """Patch get_validation_report inside the blueprint module."""
 
-    class _FakeResource:
-        def __init__(self, *a, **kw):
-            pass
+    def fake_get_validation_report(source, format):
+        return report
 
-        def validate(self):
-            return report
-
-    ctx_mgr = mock.MagicMock()
-    ctx_mgr.__enter__.return_value = ctx_mgr
-    ctx_mgr.__exit__.return_value = False
-
-    fake_system = mock.MagicMock()
-    fake_system.use_context.return_value = ctx_mgr
-
-    monkeypatch.setattr(validate_resource, "Resource", _FakeResource)
-    monkeypatch.setattr(validate_resource, "system", fake_system)
-
+    monkeypatch.setattr(
+        validate_resource,
+        "get_validation_report",
+        fake_get_validation_report,
+    )
 
 # ---------------------------------------------------------------------------
 # Functional POST tests
@@ -217,14 +207,14 @@ class TestTestFileViewPost:
     def test_post_validation_exception_shows_system_error(
         self, app, monkeypatch, auth_headers
     ):
-        class BrokenResource:
-            def __init__(self, *args, **kwargs):
-                pass
+        def fake_get_validation_report(source, format):
+            raise RuntimeError("boom")
 
-            def validate(self):
-                raise RuntimeError("boom")
-
-        monkeypatch.setattr(validate_resource, "Resource", BrokenResource)
+        monkeypatch.setattr(
+            validate_resource,
+            "get_validation_report",
+            fake_get_validation_report,
+        )
 
         data = {
             "file": (

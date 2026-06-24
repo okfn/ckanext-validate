@@ -21,7 +21,7 @@ from ckan.tests import factories
 from ckanext.validate.actions import action as validate_action
 from ckanext.validate.model.validation import Validation
 from ckanext.validate import resource_hooks
-from .conftest import DummyReport, DummyResource
+from .conftest import DummyReport
 
 
 def _validate_url(package_name, resource_id):
@@ -167,11 +167,9 @@ class TestResourceValidatePost:
             package_id=dataset["id"], format="CSV", url_type="", url="https://example.com/valid.csv"
         )
 
-        class ValidResource(DummyResource):
-            def validate(self):
-                return DummyReport(valid=True, tasks=[])
-
-        monkeypatch.setattr(validate_action, "Resource", ValidResource)
+        monkeypatch.setattr(
+            validate_action, "get_validation_report", lambda s, f: DummyReport(valid=True, tasks=[])
+        )
 
         response = app.post(
             _validate_url(dataset["name"], resource["id"]),
@@ -194,11 +192,11 @@ class TestResourceValidatePost:
 
         err = SimpleNamespace(row_number=2, field_name="price", message="type error")
 
-        class InvalidResource(DummyResource):
-            def validate(self):
-                return DummyReport(valid=False, tasks=[SimpleNamespace(errors=[err])])
-
-        monkeypatch.setattr(validate_action, "Resource", InvalidResource)
+        monkeypatch.setattr(
+            validate_action,
+            "get_validation_report",
+            lambda s, f: DummyReport(valid=False, tasks=[SimpleNamespace(errors=[err])]),
+        )
 
         response = app.post(
             _validate_url(dataset["name"], resource["id"]),

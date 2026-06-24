@@ -1,6 +1,6 @@
 import logging
 
-from frictionless import system, Resource
+from frictionless import system, Resource, Detector
 from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
@@ -12,6 +12,42 @@ from ckanext.validate.resource_hooks import is_csv_resource
 
 
 log = logging.getLogger(__name__)
+
+
+def get_validation_report(source, format):
+    """Main function to execute and and get the validation report.
+
+    The validation process is opinionated to reflect end users requirements
+    and expected UX in common validation scenarios.
+
+    Opinionated rules:
+        1. Improve accuracy on integer columns. Frictionless is to aggresive
+        on casting numeric columns into string as soon as a few string appears.
+        We want to be more permissive and detect it as integer even if a few
+        cells contains strings.
+        2. We are setting some common missing values for string columns.
+        3. We force required on all columns, this is required to detect values
+        from point number 2 as errors.
+
+    This opinionated values could be ease with some UI elements that allows custom
+    schemas, but for now we want to keep it simple.
+
+    Returns:
+        A Frictionless report.
+    """
+    _detector = Detector(
+            field_missing_values=["null", "NULL"],
+            field_confidence=0.5
+        )
+
+    with system.use_context(trusted=True):
+        res = Resource(source, format=format, detector=_detector)
+        res.infer()
+        for field in res.schema.fields:
+            field.constraints = {"required": True}
+        report = res.validate()
+
+    return report
 
 
 def resource_validate(context, data_dict):
@@ -47,14 +83,7 @@ def resource_validate(context, data_dict):
     )
 
     try:
-        if is_uploaded:
-            with system.use_context(trusted=True):
-                res = Resource(source, format=fmt_lower)
-                report = res.validate()
-        else:
-            res = Resource(source, format=fmt_lower)
-            report = res.validate()
-
+        report = get_validation_report(source, fmt_lower)
     except Exception as exc:
         log.exception("Frictionless raised an exception for resource %s", resource_id)
         raise toolkit.ValidationError(
