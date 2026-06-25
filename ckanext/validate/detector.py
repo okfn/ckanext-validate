@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from frictionless import Detector
@@ -5,6 +6,11 @@ from frictionless import Detector
 
 DETECTOR_FIELD_CONFIDENCE = 0.5
 DEFAULT_MISSING_VALUES = ["null", "NULL", "None"]
+DATE_FORMATS = [
+    "%m/%d/%Y",  # 4/25/2024
+    "%d/%m/%Y",  # 25/4/2024
+    "%Y-%m-%d",  # 2024-04-25
+]
 
 
 def _to_decimal(value):
@@ -16,6 +22,18 @@ def _to_decimal(value):
     try:
         return Decimal(value)
     except (InvalidOperation, ValueError):
+        return None
+
+
+def _to_date(value, date_format):
+    value = "" if value is None else str(value).strip()
+
+    if not value:
+        return None
+
+    try:
+        return datetime.strptime(value, date_format).date()
+    except ValueError:
         return None
 
 
@@ -33,6 +51,27 @@ def _majority_numeric_type(values, confidence):
         return "integer"
 
     return "number"
+
+
+def _date_format(values, confidence):
+    if not values:
+        return None
+
+    best_format = None
+    best_count = 0
+
+    for date_format in DATE_FORMATS:
+        parsed_values = [_to_date(value, date_format) for value in values]
+        date_values = [value for value in parsed_values if value is not None]
+
+        if len(date_values) > best_count:
+            best_count = len(date_values)
+            best_format = date_format
+
+    if best_count / len(values) < confidence:
+        return None
+
+    return best_format
 
 
 class MajorityDetector(Detector):
@@ -112,6 +151,16 @@ class MajorityDetector(Detector):
                 if len(row) > index
                 and str(row[index]).strip() not in missing_values
             ]
+
+            date_format = _date_format(
+                values,
+                confidence=self.field_confidence,
+            )
+
+            if date_format:
+                detected_schema.set_field_type(field.name, "date")
+                detected_schema.get_field(field.name).format = date_format
+                continue
 
             numeric_type = _majority_numeric_type(
                 values,
