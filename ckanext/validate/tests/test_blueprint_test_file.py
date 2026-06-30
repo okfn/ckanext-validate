@@ -265,3 +265,37 @@ class TestTestFileViewPost:
         assert "MONTO_PRESUPUESTADO" in response
         assert "type-error" in response or "Type error" in response
         assert "Twelve" in response
+
+    def test_post_mostly_date_column_with_invalid_dates_is_invalid_from_file(
+        self, app, auth_headers
+    ):
+        """Regression test: a mostly-date column with invalid date values
+        should be treated as a type error, not inferred as text."""
+
+        csv_path = os.path.join(
+            os.path.dirname(__file__), "files_test", "test_date_field.csv"
+        )
+        with open(csv_path, "rb") as f:
+            csv_bytes = f.read()
+
+        data = {
+            "file": (
+                io.BytesIO(csv_bytes),
+                "test_date_field.csv",
+            )
+        }
+
+        response = app.post(
+            TEST_FILE_URL,
+            data=data,
+            headers=auth_headers,
+            content_type="multipart/form-data",
+            status=200,
+        )
+
+        assert "validate-badge--invalid" in response
+        assert "Fecha de Firma" in response
+        assert "type-error" in response or "Type error" in response
+        assert "12/00/2020" in response
+        assert "10/32/2022" in response
+        assert "2/29/2021" in response
