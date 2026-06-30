@@ -4,8 +4,6 @@ from decimal import Decimal, InvalidOperation
 from frictionless import Detector
 
 
-DETECTOR_FIELD_CONFIDENCE = 0.5
-DEFAULT_MISSING_VALUES = ["null", "NULL", "None"]
 DATE_FORMATS = [
     "%m/%d/%Y",  # 4/25/2024
     "%d/%m/%Y",  # 25/4/2024
@@ -74,7 +72,7 @@ def _date_format(values, confidence):
     return best_format
 
 
-class MajorityDetector(Detector):
+class ValidateDetector(Detector):
     """
     Detector that fixes mostly numeric columns inferred as text.
 
@@ -98,12 +96,6 @@ class MajorityDetector(Detector):
     Then, when Frictionless validates the resource, text values like "Twelve"
     are reported as type errors.
     """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize the detector with project defaults."""
-        kwargs.setdefault("field_missing_values", DEFAULT_MISSING_VALUES)
-        kwargs.setdefault("field_confidence", DETECTOR_FIELD_CONFIDENCE)
-        super().__init__(*args, **kwargs)
 
     def detect_schema(
         self,
