@@ -1,6 +1,6 @@
 import logging
 
-from frictionless import system, Resource, Detector
+from frictionless import system, Resource
 from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
@@ -9,6 +9,7 @@ from ckanext.validate import helpers as h
 from ckanext.validate.model import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.resource_hooks import is_csv_resource
+from ckanext.validate.detector import ValidateDetector
 
 
 log = logging.getLogger(__name__)
@@ -35,8 +36,8 @@ def get_validation_report(source, format):
     Returns:
         A Frictionless report.
     """
-    _detector = Detector(
-            field_missing_values=["null", "NULL"],
+    _detector = ValidateDetector(
+            field_missing_values=["null", "NULL", "None"],
             field_confidence=0.5
         )
 
