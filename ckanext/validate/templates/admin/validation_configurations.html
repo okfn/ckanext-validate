@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+
+{% block subtitle %}{{ _('Validation Rules') }}{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  {% asset 'validate/validation-configuration-css' %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% asset 'validate/validation-configuration-js' %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  <div class="validation-rules-page">
+    {% snippet 'admin/snippets/validation_configuration_form.html',
+      form_action=h.url_for('validate_configuration_admin.validation_configurations'),
+      form_data=form_data,
+      configurations=configurations,
+      selected_configuration_id=selected_configuration_id,
+      submit_label=_('Create configuration'),
+      is_edit=false
+    %}
+  </div>
+{% endblock %}
+
+{% block secondary_content %}
+  <div class="validation-rules-page">
+    explicacion 
+  </div>
+{% endblock %}

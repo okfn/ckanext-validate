@@ -12,7 +12,7 @@ from ckanext.validate.auth import validation as validate_auth
 from ckanext.validate.auth import (
     validation_configuration as validation_configuration_auth,
 )
-from ckanext.validate.blueprints import resource, admin
+from ckanext.validate.blueprints import resource, admin, validation_configuration
 from ckanext.validate import resource_hooks
 from ckanext.validate import helpers as h
 
@@ -83,6 +83,7 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
             resource.resource_validate_blueprint,
             resource.validate_test_file_blueprint,
             admin.validation_jobs_blueprint,
+            validation_configuration.validation_configuration_blueprint,
         ]
 
     # IResourceController

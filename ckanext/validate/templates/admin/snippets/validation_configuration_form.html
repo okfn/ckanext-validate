@@ -1,0 +1,538 @@
+<div
+  class="validation-rules-card"
+  data-module="validation-configuration-builder"
+  data-empty-message="{{ _('No validation rules have been defined for this configuration.') }}"
+  data-add-label="{{ _('Add rule') }}"
+  data-update-label="{{ _('Update rule') }}"
+  data-edit-label="{{ _('Edit') }}"
+  data-enable-label="{{ _('Enable') }}"
+  data-disable-label="{{ _('Disable') }}"
+  data-delete-label="{{ _('Delete') }}"
+  data-required-message="{{ _('Complete the column, data type and rule fields.') }}"
+  data-duplicate-message="{{ _('This rule already exists for the selected column.') }}"
+  data-invalid-value-message="{{ _('Enter a valid value for the selected rule.') }}"
+>
+  {# ============================================================
+     Header
+     ============================================================ #}
+
+  <div class="validation-rules-card__header">
+    <div>
+      <h1 class="validation-rules-card__title">
+        {{ _('Validation Rules') }}
+      </h1>
+
+      <p class="validation-rules-card__description">
+        {{
+          _(
+            'Define the Frictionless rules that will be applied '
+            'when validating CSV resources.'
+          )
+        }}
+      </p>
+    </div>
+
+    {% if is_edit and configuration %}
+      <form
+        method="post"
+        action="{{ h.url_for(
+          'validate_configuration_admin.validation_configuration_delete',
+          configuration_id=configuration.id
+        ) }}"
+        class="validation-rules-card__delete-form"
+        onsubmit="return confirm(
+          '{{ _('Delete this validation configuration?') }}'
+        );"
+      >
+        <input
+          type="hidden"
+          name="_csrf_token"
+          value="{{ csrf_token() }}"
+        >
+
+        <button
+          type="submit"
+          class="btn btn-danger btn-sm"
+        >
+          <i class="fa fa-trash"></i>
+          {{ _('Delete configuration') }}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  {# ============================================================
+     Configuration selector
+     ============================================================ #}
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="form-group">
+        <label for="validation-configuration-selector">
+          {{ _('Configuration') }}
+        </label>
+
+        <select
+          id="validation-configuration-selector"
+          class="form-control"
+          data-role="configuration-selector"
+        >
+          <option
+            value="{{ h.url_for(
+              'validate_configuration_admin.validation_configurations'
+            ) }}"
+            {% if not selected_configuration_id %}
+              selected
+            {% endif %}
+          >
+            {{ _('New configuration') }}
+          </option>
+
+          {% for item in configurations %}
+            <option
+              value="{{ h.url_for(
+                'validate_configuration_admin.validation_configuration_edit',
+                configuration_id=item.id
+              ) }}"
+              {% if selected_configuration_id == item.id %}
+                selected
+              {% endif %}
+            >
+              {{ item.name }}
+
+              {% if not item.active %}
+                · {{ _('Inactive') }}
+              {% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {# ============================================================
+     Main configuration form
+     ============================================================ #}
+
+  <form
+    method="post"
+    action="{{ form_action }}"
+    data-role="configuration-form"
+  >
+    <input
+      type="hidden"
+      name="_csrf_token"
+      value="{{ csrf_token() }}"
+    >
+
+    {#
+      El usuario no edita este campo directamente.
+      JavaScript genera aquí el descriptor de Frictionless.
+    #}
+
+    <textarea
+      name="schema"
+      data-role="schema"
+      hidden
+    >{{ form_data.schema }}</textarea>
+
+    {# ==========================================================
+       Configuration metadata
+       ========================================================== #}
+
+    <section class="validation-rules-metadata">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="validation-configuration-name">
+              {{ _('Name') }}
+            </label>
+
+            <input
+              id="validation-configuration-name"
+              name="name"
+              type="text"
+              class="form-control"
+              value="{{ form_data.name }}"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="validation-configuration-description">
+              {{ _('Description') }}
+            </label>
+
+            <input
+              id="validation-configuration-description"
+              name="description"
+              type="text"
+              class="form-control"
+              value="{{ form_data.description }}"
+            >
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div
+            class="form-group"
+            style="padding-top: 29px;"
+          >
+            <label class="checkbox">
+              <input
+                name="active"
+                type="checkbox"
+                {% if form_data.active %}
+                  checked
+                {% endif %}
+              >
+
+              {{ _('Active') }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ==========================================================
+       Rule builder
+       ========================================================== #}
+
+    <section
+      class="validation-rule-builder"
+      style="
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+      "
+    >
+      <h2
+        class="validation-rule-builder__title"
+        style="
+          font-size: 16px;
+          font-weight: 600;
+          margin-top: 0;
+          margin-bottom: 14px;
+        "
+      >
+        {{ _('New rule') }}
+      </h2>
+
+      <input
+        type="hidden"
+        data-role="rule-id"
+      >
+
+      {#
+        La fila está construida con columnas Bootstrap para que los
+        controles se mantengan horizontales dentro del admin de CKAN.
+      #}
+
+      <div class="row">
+        {# Column and Frictionless type #}
+
+        <div class="col-md-4">
+          <div class="form-group">
+            <label
+              class="sr-only"
+              for="validation-rule-field"
+            >
+              {{ _('Column') }}
+            </label>
+
+            <input
+              id="validation-rule-field"
+              type="text"
+              class="form-control"
+              list="validation-rule-fields"
+              autocomplete="off"
+              placeholder="{{ _('Column') }}"
+              data-role="field-name"
+            >
+
+            <datalist
+              id="validation-rule-fields"
+              data-role="field-list"
+            ></datalist>
+          </div>
+
+          <div
+            class="form-group"
+            style="margin-top: 8px;"
+          >
+            <label
+              class="sr-only"
+              for="validation-rule-field-type"
+            >
+              {{ _('Data type') }}
+            </label>
+
+            <select
+              id="validation-rule-field-type"
+              class="form-control"
+              data-role="field-type"
+              title="{{ _('Data type') }}"
+            >
+              <option value="string">
+                {{ _('Text') }}
+              </option>
+
+              <option value="integer">
+                {{ _('Integer') }}
+              </option>
+
+              <option value="number">
+                {{ _('Number') }}
+              </option>
+
+              <option value="boolean">
+                {{ _('Boolean') }}
+              </option>
+
+              <option value="date">
+                {{ _('Date') }}
+              </option>
+
+              <option value="time">
+                {{ _('Time') }}
+              </option>
+
+              <option value="datetime">
+                {{ _('Date and time') }}
+              </option>
+
+              <option value="year">
+                {{ _('Year') }}
+              </option>
+
+              <option value="yearmonth">
+                {{ _('Year and month') }}
+              </option>
+
+              <option value="duration">
+                {{ _('Duration') }}
+              </option>
+
+              <option value="geopoint">
+                {{ _('Geographic point') }}
+              </option>
+
+              <option value="geojson">
+                GeoJSON
+              </option>
+
+              <option value="object">
+                {{ _('Object') }}
+              </option>
+
+              <option value="array">
+                {{ _('Array') }}
+              </option>
+
+              <option value="any">
+                {{ _('Any') }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {# Validation rule #}
+
+        <div class="col-md-3">
+          <div class="form-group">
+            <label
+              class="sr-only"
+              for="validation-rule-type"
+            >
+              {{ _('Rule') }}
+            </label>
+
+            <select
+              id="validation-rule-type"
+              class="form-control"
+              data-role="rule-type"
+            >
+              <option value="required">
+                {{ _('Required') }}
+              </option>
+
+              <option value="unique">
+                {{ _('Unique') }}
+              </option>
+
+              <option value="minLength">
+                {{ _('Minimum length') }}
+              </option>
+
+              <option value="maxLength">
+                {{ _('Maximum length') }}
+              </option>
+
+              <option value="minimum">
+                {{ _('Minimum value') }}
+              </option>
+
+              <option value="maximum">
+                {{ _('Maximum value') }}
+              </option>
+
+              <option value="pattern">
+                {{ _('Regular expression') }}
+              </option>
+
+              <option value="enum">
+                {{ _('List of values') }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {# Rule value #}
+
+        <div class="col-md-2">
+          <div class="form-group">
+            <label
+              class="sr-only"
+              for="validation-rule-value"
+            >
+              {{ _('Value') }}
+            </label>
+
+            <input
+              id="validation-rule-value"
+              type="text"
+              class="form-control"
+              placeholder="{{ _('Value, when applicable') }}"
+              data-role="rule-value"
+            >
+          </div>
+        </div>
+
+        {# Error message #}
+
+        <div class="col-md-3">
+          <div class="form-group">
+            <label
+              class="sr-only"
+              for="validation-rule-message"
+            >
+              {{ _('Error message') }}
+            </label>
+
+            <input
+              id="validation-rule-message"
+              type="text"
+              class="form-control"
+              placeholder="{{ _('Error message') }}"
+              data-role="rule-message"
+            >
+          </div>
+        </div>
+      </div>
+
+      {# Builder actions #}
+
+      <div
+        class="validation-rule-builder__actions"
+        style="margin-top: 12px;"
+      >
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-role="add-rule"
+        >
+          <i class="fa fa-plus"></i>
+
+          <span data-role="add-rule-label">
+            {{ _('Add rule') }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-default is-hidden"
+          data-role="cancel-edit"
+        >
+          {{ _('Cancel') }}
+        </button>
+      </div>
+
+      {# Builder validation error #}
+
+      <div
+        class="
+          alert
+          alert-danger
+          is-hidden
+          validation-rule-builder__error
+        "
+        data-role="rule-error"
+        style="margin-top: 12px; margin-bottom: 0;"
+      ></div>
+    </section>
+
+    {# ==========================================================
+       Rules table
+       ========================================================== #}
+
+    <div
+      class="table-responsive validation-rules-table-wrapper"
+      style="
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      "
+    >
+      <table
+        class="table validation-rules-table"
+        style="margin-bottom: 0;"
+      >
+        <thead>
+          <tr>
+            <th>
+              {{ _('Column') }}
+            </th>
+
+            <th>
+              {{ _('Type') }}
+            </th>
+
+            <th>
+              {{ _('Value') }}
+            </th>
+
+            <th>
+              {{ _('Message') }}
+            </th>
+
+            <th
+              class="validation-rules-table__actions-heading"
+              style="text-align: right;"
+            >
+              {{ _('Actions') }}
+            </th>
+          </tr>
+        </thead>
+
+        <tbody data-role="rule-list"></tbody>
+      </table>
+    </div>
+
+    {# ==========================================================
+       Save configuration
+       ========================================================== #}
+
+    <div class="validation-rules-save">
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        <i class="fa fa-save"></i>
+        {{ submit_label }}
+      </button>
+    </div>
+  </form>
+</div>

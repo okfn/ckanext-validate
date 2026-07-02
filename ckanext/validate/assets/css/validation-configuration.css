@@ -1,0 +1,250 @@
+.validation-rules-page {
+  max-width: 1180px;
+  width: 100%;
+}
+
+.validation-rules-card {
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+.validation-rules-card__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.validation-rules-card__title {
+  font-size: 22px;
+  line-height: 1.25;
+  margin: 0 0 10px;
+}
+
+.validation-rules-card__description {
+  color: #6b7280;
+  margin: 0;
+}
+
+.validation-rules-card__delete-form {
+  flex: 0 0 auto;
+}
+
+.validation-rules-selector {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.validation-rules-selector label {
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.validation-rules-selector select {
+  max-width: 300px;
+  width: auto;
+}
+
+.validation-rules-metadata {
+  align-items: end;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(190px, 0.9fr) minmax(280px, 1.7fr) auto;
+  margin-bottom: 18px;
+}
+
+.validation-rules-metadata .form-group {
+  margin-bottom: 0;
+}
+
+.validation-rules-metadata__active {
+  padding-bottom: 8px;
+}
+
+.validation-rule-builder {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.validation-rule-builder__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.validation-rule-builder__grid {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns:
+    minmax(260px, 1.35fr)
+    minmax(170px, 1fr)
+    minmax(155px, 0.9fr)
+    minmax(210px, 1.2fr);
+}
+
+.validation-rule-builder__grid .form-group {
+  margin-bottom: 0;
+}
+
+.validation-rule-builder__field-group {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(145px, 1fr) minmax(105px, 0.65fr);
+}
+
+.validation-rule-builder__field-group .form-control {
+  min-width: 0;
+}
+
+.validation-rule-builder__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.validation-rule-builder__error {
+  margin: 12px 0 0;
+}
+
+.validation-rules-table-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.validation-rules-table {
+  margin-bottom: 0;
+  min-width: 760px;
+}
+
+.validation-rules-table thead th {
+  background: #fafafa;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.validation-rules-table td,
+.validation-rules-table th {
+  padding: 11px 12px;
+  vertical-align: middle;
+}
+
+.validation-rules-table tbody tr.is-disabled td {
+  color: #9ca3af;
+}
+
+.validation-rules-table tbody tr.is-disabled .validation-rules-table__rule-name,
+.validation-rules-table tbody tr.is-disabled .validation-rules-table__field-name,
+.validation-rules-table tbody tr.is-disabled td:nth-child(3),
+.validation-rules-table tbody tr.is-disabled td:nth-child(4) {
+  text-decoration: line-through;
+}
+
+.validation-rules-table__field-name,
+.validation-rules-table__rule-name {
+  display: block;
+}
+
+.validation-rules-table__data-type {
+  color: #6b7280;
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.validation-rules-table__actions-heading,
+.validation-rules-table__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.validation-rules-table__empty {
+  color: #6b7280;
+  padding: 26px !important;
+  text-align: center;
+}
+
+.validation-rule-action {
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.validation-rule-action--toggle {
+  color: #20b778;
+}
+
+.validation-rule-action--edit {
+  color: #2563eb;
+}
+
+.validation-rule-action--delete {
+  color: #ef4444;
+}
+
+.validation-rules-save {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+@media (max-width: 960px) {
+  .validation-rule-builder {
+    overflow-x: auto;
+  }
+
+  .validation-rule-builder__grid {
+    min-width: 850px;
+  }
+
+  .validation-rule-builder__actions,
+  .validation-rule-builder__error {
+    min-width: 850px;
+  }
+}
+
+@media (max-width: 760px) {
+  .validation-rules-card {
+    padding: 16px;
+  }
+
+  .validation-rules-card__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .validation-rules-selector {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .validation-rules-selector select {
+    max-width: none;
+    width: 100%;
+  }
+
+  .validation-rules-metadata {
+    grid-template-columns: 1fr;
+  }
+
+  .validation-rules-metadata__active {
+    padding-bottom: 0;
+  }
+}
