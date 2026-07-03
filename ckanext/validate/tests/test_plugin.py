@@ -52,9 +52,12 @@ from ckan.plugins import plugin_loaded
 
 from ckanext.validate import resource_hooks
 from ckanext.validate.actions import action as validate_action
+from ckanext.validate.actions import validation_configuration as config_action
 from ckanext.validate.auth import validation as validate_auth
+from ckanext.validate.auth import validation_configuration as config_auth
 from ckanext.validate.blueprints import resource as validate_resource
 from ckanext.validate.blueprints import admin as validate_admin
+from ckanext.validate.blueprints import validation_configuration as config_blueprint
 from ckanext.validate.plugin import ValidatePlugin
 
 
@@ -73,6 +76,7 @@ def test_plugin_registers_expected_blueprint():
         validate_resource.resource_validate_blueprint,
         validate_resource.validate_test_file_blueprint,
         validate_admin.validation_jobs_blueprint,
+        config_blueprint.validation_configuration_blueprint,
     ]
 
 
@@ -84,6 +88,11 @@ def test_plugin_registers_expected_actions():
         "resource_validation_show": validate_action.resource_validation_show,
         "validation_job_list": validate_action.validation_job_list,
         "resource_validation_status": validate_action.resource_validation_status,
+        "validation_configuration_create": config_action.validation_configuration_create,
+        "validation_configuration_update": config_action.validation_configuration_update,
+        "validation_configuration_delete": config_action.validation_configuration_delete,
+        "validation_configuration_show": config_action.validation_configuration_show,
+        "validation_configuration_list": config_action.validation_configuration_list,
     }
 
 
@@ -95,6 +104,11 @@ def test_plugin_registers_expected_auth_functions():
         "resource_validation_show": validate_auth.resource_validation_show,
         "validation_job_list": validate_auth.validation_job_list,
         "resource_validation_status": validate_auth.resource_validation_status,
+        "validation_configuration_create": config_auth.validation_configuration_create,
+        "validation_configuration_update": config_auth.validation_configuration_update,
+        "validation_configuration_delete": config_auth.validation_configuration_delete,
+        "validation_configuration_show": config_auth.validation_configuration_show,
+        "validation_configuration_list": config_auth.validation_configuration_list,
     }
 
 
