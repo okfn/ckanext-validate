@@ -168,7 +168,9 @@ class TestResourceValidatePost:
         )
 
         monkeypatch.setattr(
-            validate_action, "get_validation_report", lambda s, f: DummyReport(valid=True, tasks=[])
+            validate_action,
+            "get_validation_report",
+            lambda s, f, schema=None: DummyReport(valid=True, tasks=[]),
         )
 
         response = app.post(
@@ -195,7 +197,10 @@ class TestResourceValidatePost:
         monkeypatch.setattr(
             validate_action,
             "get_validation_report",
-            lambda s, f: DummyReport(valid=False, tasks=[SimpleNamespace(errors=[err])]),
+            lambda s, f, schema=None: DummyReport(
+                valid=False,
+                tasks=[SimpleNamespace(errors=[err])],
+            ),
         )
 
         response = app.post(

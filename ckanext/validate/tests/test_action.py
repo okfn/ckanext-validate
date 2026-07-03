@@ -83,7 +83,11 @@ def test_resource_validate_collects_task_errors(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(validate_action, "get_validation_report", lambda s, f: report)
+    monkeypatch.setattr(
+        validate_action,
+        "get_validation_report",
+        lambda s, f, schema=None: report,
+    )
 
     result = validate_action.resource_validate(
         {"user": sysadmin["name"]}, {"id": resource["id"]}
@@ -110,7 +114,9 @@ def test_resource_validate_adds_structural_error_when_report_has_no_task_errors(
     sysadmin = factories.Sysadmin()
 
     monkeypatch.setattr(
-        validate_action, "get_validation_report", lambda s, f: DummyReport(valid=False, tasks=[])
+        validate_action,
+        "get_validation_report",
+        lambda s, f, schema=None: DummyReport(valid=False, tasks=[]),
     )
 
     result = validate_action.resource_validate(
@@ -144,7 +150,7 @@ def test_resource_validate_wraps_frictionless_exceptions(monkeypatch):
     )
     sysadmin = factories.Sysadmin()
 
-    def _fake_get_validation_report(source, fmt):
+    def _fake_get_validation_report(source, fmt, schema=None):
         raise RuntimeError("boom")
 
     monkeypatch.setattr(validate_action, "get_validation_report", _fake_get_validation_report)
