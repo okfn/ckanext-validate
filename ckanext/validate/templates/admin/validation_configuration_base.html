@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+
+{% block subtitle %}{{ _('Validation Rules') }}{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  {% asset 'validate/validation-configuration-css' %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% asset 'validate/validation-configuration-js' %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  {% block validation_configuration_content %}{% endblock %}
+{% endblock %}

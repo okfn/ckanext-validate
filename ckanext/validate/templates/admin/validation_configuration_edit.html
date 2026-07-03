@@ -1,30 +1,16 @@
-{% extends "admin/base.html" %}
+{% extends "admin/validation_configuration_base.html" %}
 
-{% block subtitle %}{{ _('Validation Rules') }}{% endblock %}
-
-{% block styles %}
-  {{ super() }}
-  {% asset 'validate/validation-configuration-css' %}
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  {% asset 'validate/validation-configuration-js' %}
-{% endblock %}
-
-{% block primary_content_inner %}
-  <div class="validation-rules-page">
-    {% snippet 'admin/snippets/validation_configuration_form.html',
-      form_action=h.url_for(
-        'validate_configuration_admin.validation_configuration_edit',
-        configuration_id=configuration.id
-      ),
-      form_data=form_data,
-      configurations=configurations,
-      selected_configuration_id=selected_configuration_id,
-      submit_label=_('Save changes'),
-      is_edit=true,
-      configuration=configuration
-    %}
-  </div>
+{% block validation_configuration_content %}
+  {% snippet 'admin/snippets/validation_configuration_form.html',
+    form_action=h.url_for(
+      'validate_configuration_admin.validation_configuration_edit',
+      configuration_id=configuration.id
+    ),
+    form_data=form_data,
+    configurations=configurations,
+    selected_configuration_id=selected_configuration_id,
+    submit_label=_('Save changes'),
+    is_edit=true,
+    configuration=configuration
+  %}
 {% endblock %}
