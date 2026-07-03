@@ -1,5 +1,6 @@
 from copy import deepcopy
 from datetime import datetime, timezone
+import logging
 from sqlalchemy import Integer
 import uuid
 
@@ -11,6 +12,7 @@ from sqlalchemy import (
     UnicodeText,
     UniqueConstraint,
 )
+from sqlalchemy.exc import ProgrammingError
 
 from ckan.model import Session
 from ckan.model.base import ActiveRecordMixin
@@ -21,6 +23,9 @@ from ckanext.validate.validation_schema import (
     normalize_schema_descriptor,
     schema_from_descriptor,
 )
+
+
+log = logging.getLogger(__name__)
 
 
 class ValidationConfiguration(
@@ -289,13 +294,47 @@ class ValidationConfigurationAssignment(
         target_type,
         target_id,
     ):
-        return (
-            Session.query(cls)
-            .filter(
-                cls.target_type == target_type,
-                cls.target_id == target_id,
+        try:
+            return (
+                Session.query(cls)
+                .filter(
+                    cls.target_type == target_type,
+                    cls.target_id == target_id,
+                )
+                .first()
             )
-            .first()
+        except ProgrammingError as exc:
+            if not cls._is_missing_assignment_table_error(exc):
+                raise
+
+            # Reset the failed transaction and continue without assignment.
+            Session.rollback()
+            log.warning(
+                "Validation configuration assignment table is missing. "
+                "Run 'ckan db upgrade -p validate' to apply pending migrations."
+            )
+            return None
+
+    @classmethod
+    def _is_missing_assignment_table_error(
+        cls,
+        exc,
+    ):
+        original_error = getattr(exc, "orig", None)
+        pgcode = getattr(original_error, "pgcode", None)
+
+        if pgcode == "42P01":
+            return True
+
+        message = str(original_error or exc).lower()
+
+        return (
+            "validate_validation_configuration_assignment" in message
+            and (
+                "does not exist" in message
+                or "undefined table" in message
+                or "no such table" in message
+            )
         )
 
     @classmethod

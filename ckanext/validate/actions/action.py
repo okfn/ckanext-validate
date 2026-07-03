@@ -40,7 +40,7 @@ def get_validation_report(source, resource_format, schema=None):
         A Frictionless report.
     """
     log.debug("00000000000000000000Getting validation report for source=%s, resource_format=%s, schema=%s",
-        source, resource_format, schema)
+              source, resource_format, schema)
 
     detector = ValidateDetector(
         field_missing_values=[

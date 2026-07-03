@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from collections import OrderedDict
 
@@ -10,10 +11,13 @@ from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 
 from copy import deepcopy
 
-from frictionless import Schema, system
+from frictionless import Schema
 
 
 MAX_ERROR_ROWS_PER_GROUP = 20
+
+
+log = logging.getLogger(__name__)
 
 
 def collect_report_errors(report):
@@ -353,7 +357,20 @@ def get_configuration_for_resource(resource):
             assignment.configuration_id
         )
 
+    active_configurations = ValidationConfiguration.get_all(
+        active=True
+    )
+
+    if len(active_configurations) == 1:
+        configuration = active_configurations[0]
+        log.info(
+            "Using single active validation configuration by default: %s",
+            configuration.id,
+        )
+        return configuration
+
     return None
+
 
 DEFAULT_MISSING_VALUES = [
     "",
@@ -363,7 +380,7 @@ DEFAULT_MISSING_VALUES = [
 ]
 
 
-def _merge_validation_schema(
+def merge_validation_schema(
     inferred_schema,
     configured_schema,
 ):
