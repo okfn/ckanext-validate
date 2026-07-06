@@ -39,8 +39,6 @@ def get_validation_report(source, resource_format, schema=None):
     Returns:
         A Frictionless report.
     """
-    log.debug("00000000000000000000Getting validation report for source=%s, resource_format=%s, schema=%s",
-              source, resource_format, schema)
 
     detector = ValidateDetector(
         field_missing_values=[
@@ -86,7 +84,6 @@ def resource_validate(context, data_dict):
     :returns: the resource dict
     :rtype: dict
     """
-    log.debug("11111111111111111Validating resource with data_dict=%s", data_dict)
 
     resource_id = toolkit.get_or_bust(data_dict, "id")
     toolkit.check_access("resource_update", context, {"id": resource_id})
@@ -191,7 +188,6 @@ def resource_validation_show(context, data_dict):
     :returns: dict with validation result or raises ObjectNotFound
     :rtype: dict
     """
-    log.debug("22222222222222222Showing validation for resource with data_dict=%s", data_dict)
     resource_id = toolkit.get_or_bust(data_dict, "id")
     toolkit.check_access("resource_show", context, {"id": resource_id})
 
@@ -221,7 +217,6 @@ def validation_job_list(context, data_dict):
     :returns: list of job dicts
     :rtype: list[dict]
     """
-    log.debug("33333333333333333Listing validation jobs with data_dict=%s", data_dict)
     toolkit.check_access("validation_job_list", context, data_dict)
 
     valid_statuses = {s.value for s in JobStatus}
@@ -250,7 +245,6 @@ def validation_job_list(context, data_dict):
 
 @toolkit.side_effect_free
 def resource_validation_status(context, data_dict):
-    log.debug("44444444444444444Getting validation status for resource with data_dict=%s", data_dict)
     resource_id = toolkit.get_or_bust(data_dict, "id")
 
     toolkit.check_access(
