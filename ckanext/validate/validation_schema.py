@@ -57,6 +57,17 @@ def normalize_schema_descriptor(descriptor):
     editor because it contains information that Table Schema does not model,
     such as custom messages and disabled rules.
     """
+    if not isinstance(descriptor, dict):
+        raise toolkit.ValidationError(
+            {
+                "schema": [
+                    toolkit._(
+                        "The validation schema must be a JSON object."
+                    )
+                ]
+            }
+        )
+
     private_rules = deepcopy(
         descriptor.get(VALIDATION_RULES_PROPERTY)
     )

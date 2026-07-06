@@ -77,3 +77,31 @@ def test_invalid_frictionless_schema_is_rejected():
 
     with pytest.raises(toolkit.ValidationError):
         schema_from_descriptor(descriptor)
+
+
+def test_normalize_preserves_private_validation_rules():
+    rules = [
+        {
+            "id": "rule-1",
+            "field": "monto",
+            "fieldType": "number",
+            "constraint": "minimum",
+            "value": 0,
+            "message": "El monto no puede ser negativo",
+            "enabled": False,
+        }
+    ]
+
+    descriptor = {
+        "fields": [
+            {
+                "name": "monto",
+                "type": "number",
+            }
+        ],
+        "_validate_rules": rules,
+    }
+
+    normalized = normalize_schema_descriptor(descriptor)
+
+    assert normalized["_validate_rules"] == rules
