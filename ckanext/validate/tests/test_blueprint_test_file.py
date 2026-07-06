@@ -72,7 +72,7 @@ class TestTestFileViewAccess:
 def _mock_frictionless(monkeypatch, report):
     """Patch get_validation_report inside the blueprint module."""
 
-    def fake_get_validation_report(source, format):
+    def fake_get_validation_report(source, resource_format=None, schema=None, **kwargs):
         return report
 
     monkeypatch.setattr(
@@ -208,7 +208,12 @@ class TestTestFileViewPost:
     def test_post_validation_exception_shows_system_error(
         self, app, monkeypatch, auth_headers
     ):
-        def fake_get_validation_report(source, format):
+        def fake_get_validation_report(
+            source,
+            resource_format=None,
+            schema=None,
+            **kwargs,
+        ):
             raise RuntimeError("boom")
 
         monkeypatch.setattr(

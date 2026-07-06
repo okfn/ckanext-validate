@@ -7,6 +7,9 @@ import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate import helpers as h
 from ckanext.validate.model import Validation
+from ckanext.validate.model.validation_configuration import (
+    ValidationConfiguration,
+)
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.resource_hooks import is_csv_resource
 from ckanext.validate.detector import ValidateDetector
@@ -15,7 +18,7 @@ from ckanext.validate.detector import ValidateDetector
 log = logging.getLogger(__name__)
 
 
-def get_validation_report(source, format):
+def get_validation_report(source, resource_format, schema=None):
     """Main function to execute and and get the validation report.
 
     The validation process is opinionated to reflect end users requirements
@@ -36,19 +39,40 @@ def get_validation_report(source, format):
     Returns:
         A Frictionless report.
     """
-    _detector = ValidateDetector(
-            field_missing_values=["null", "NULL", "None"],
-            field_confidence=0.5
-        )
+
+    detector = ValidateDetector(
+        field_missing_values=[
+            "null",
+            "NULL",
+            "None",
+        ],
+        field_confidence=0.5,
+    )
 
     with system.use_context(trusted=True):
-        res = Resource(source, format=format, detector=_detector)
-        res.infer()
-        for field in res.schema.fields:
-            field.constraints = {"required": True}
-        report = res.validate()
+        resource = Resource(
+            source,
+            format=resource_format,
+            detector=detector,
+        )
 
-    return report
+        resource.infer()
+
+        if schema is not None:
+            resource.schema = h.merge_validation_schema(
+                resource.schema,
+                schema,
+            )
+        else:
+            for field in resource.schema.fields:
+                constraints = dict(
+                    field.constraints or {}
+                )
+
+                constraints["required"] = True
+                field.constraints = constraints
+
+        return resource.validate()
 
 
 def resource_validate(context, data_dict):
@@ -60,6 +84,7 @@ def resource_validate(context, data_dict):
     :returns: the resource dict
     :rtype: dict
     """
+
     resource_id = toolkit.get_or_bust(data_dict, "id")
     toolkit.check_access("resource_update", context, {"id": resource_id})
     resource = toolkit.get_action("resource_show")(context, {"id": resource_id})
@@ -69,22 +94,58 @@ def resource_validate(context, data_dict):
             {"format": [toolkit._("Only CSV resources can be validated.")]}
         )
 
+    configuration_id = data_dict.get("validation_configuration_id")
+
+    if configuration_id:
+        configuration = ValidationConfiguration.get_active(configuration_id)
+
+        if configuration is None:
+            raise toolkit.ValidationError(
+                {
+                    "validation_configuration_id": [
+                        toolkit._(
+                            "The selected validation configuration "
+                            "does not exist or is inactive."
+                        )
+                    ]
+                }
+            )
+    else:
+        configuration = h.get_configuration_for_resource(resource)
+
     is_uploaded = resource.get("url_type") == "upload"
-    fmt_lower = h.normalize_format(resource)
+    resource_format = h.normalize_format(resource)
     if is_uploaded:
         # TODO: Refactor to new file API when migrating to CKAN 2.12.
         upload = uploader.get_resource_uploader(resource)
-        source = "file://" + upload.get_path(resource["id"])
+        source = "file://" + upload.get_path(resource_id)
     else:
         source = resource["url"]
 
     log.info(
-        "Starting validation for resource %s (format=%s, uploaded=%s, source=%s)",
-        resource_id, fmt_lower, is_uploaded, source,
+        "Starting validation for resource %s "
+        "(format=%s, uploaded=%s, source=%s, "
+        "configuration_id=%s, configuration_name=%s)",
+        resource_id,
+        resource_format,
+        is_uploaded,
+        source,
+        configuration.id if configuration else None,
+        configuration.name if configuration else None,
     )
 
     try:
-        report = get_validation_report(source, fmt_lower)
+        configured_schema = (
+            configuration.get_schema()
+            if configuration
+            else None
+        )
+
+        report = get_validation_report(
+            source,
+            resource_format,
+            schema=configured_schema,
+        )
     except Exception as exc:
         log.exception("Frictionless raised an exception for resource %s", resource_id)
         raise toolkit.ValidationError(
@@ -108,8 +169,11 @@ def resource_validate(context, data_dict):
     )
 
     log.info(
-        "Resource %s validation finished: status=%s errors=%d",
-        resource_id, status, error_count,
+        "Resource %s validation finished: status=%s errors=%d configuration_id=%s",
+        resource_id,
+        status,
+        error_count,
+        configuration.id if configuration else None,
     )
 
     return resource

@@ -1,14 +1,23 @@
 from datetime import datetime
+import logging
 
 from collections import OrderedDict
 
 import ckan.plugins.toolkit as toolkit
 
 from ckanext.validate.model.validation import Validation
+from ckanext.validate.model.validation_configuration import ValidationConfigurationAssignment, ValidationConfiguration
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
+
+from copy import deepcopy
+
+from frictionless import Schema
 
 
 MAX_ERROR_ROWS_PER_GROUP = 20
+
+
+log = logging.getLogger(__name__)
 
 
 def collect_report_errors(report):
@@ -311,3 +320,155 @@ def validation_error_message(error):
             messages.append(str(value))
 
     return "; ".join(messages) or str(error)
+
+
+def get_configuration_for_resource(resource):
+    """Return the active validation configuration for a given resource."""
+    resource_id = resource["id"]
+    package_id = resource["package_id"]
+
+    assignment = (
+        ValidationConfigurationAssignment
+        .get_for_resource(resource_id)
+    )
+
+    if assignment:
+        return ValidationConfiguration.get_active(
+            assignment.configuration_id
+        )
+
+    assignment = (
+        ValidationConfigurationAssignment
+        .get_for_package(package_id)
+    )
+
+    if assignment:
+        return ValidationConfiguration.get_active(
+            assignment.configuration_id
+        )
+
+    assignment = (
+        ValidationConfigurationAssignment
+        .get_global()
+    )
+
+    if assignment:
+        return ValidationConfiguration.get_active(
+            assignment.configuration_id
+        )
+
+    active_configurations = ValidationConfiguration.get_all(
+        active=True
+    )
+
+    if len(active_configurations) == 1:
+        configuration = active_configurations[0]
+        log.info(
+            "Using single active validation configuration by default: %s",
+            configuration.id,
+        )
+        return configuration
+
+    return None
+
+
+DEFAULT_MISSING_VALUES = [
+    "",
+    "null",
+    "NULL",
+    "None",
+]
+
+
+def merge_validation_schema(
+    inferred_schema,
+    configured_schema,
+):
+    """Apply configured rules over the complete inferred schema.
+
+    The visual editor can define rules for only some CSV columns.
+    Therefore, the configured schema must not replace the complete inferred
+    schema because unrelated CSV columns would be reported as extra labels.
+    """
+    inferred_descriptor = inferred_schema.to_descriptor()
+    configured_descriptor = configured_schema.to_descriptor()
+
+    configured_fields = {
+        field["name"]: field
+        for field in configured_descriptor.get(
+            "fields",
+            [],
+        )
+    }
+
+    merged_fields = []
+    processed_fields = set()
+
+    for inferred_field in inferred_descriptor.get(
+        "fields",
+        [],
+    ):
+        field_name = inferred_field.get("name")
+        configured_field = configured_fields.get(
+            field_name
+        )
+
+        if configured_field is None:
+            merged_fields.append(
+                deepcopy(inferred_field)
+            )
+            continue
+
+        merged_field = deepcopy(inferred_field)
+
+        # The explicitly configured type, format and constraints
+        # take precedence over inferred values.
+        merged_field.update(
+            deepcopy(configured_field)
+        )
+
+        merged_fields.append(merged_field)
+        processed_fields.add(field_name)
+
+    # Keep configured fields that do not exist in the CSV.
+    # Frictionless can then report them as missing labels.
+    for field_name, configured_field in configured_fields.items():
+        if field_name in processed_fields:
+            continue
+
+        merged_fields.append(
+            deepcopy(configured_field)
+        )
+
+    merged_descriptor = deepcopy(
+        inferred_descriptor
+    )
+
+    # Preserve any supported schema-level properties configured in
+    # Frictionless, except fields and missingValues, which are merged below.
+    for key, value in configured_descriptor.items():
+        if key in {"fields", "missingValues"}:
+            continue
+
+        merged_descriptor[key] = deepcopy(value)
+
+    merged_descriptor["fields"] = merged_fields
+
+    missing_values = list(
+        configured_descriptor.get(
+            "missingValues",
+            [],
+        )
+    )
+
+    for value in DEFAULT_MISSING_VALUES:
+        if value not in missing_values:
+            missing_values.append(value)
+
+    merged_descriptor["missingValues"] = (
+        missing_values
+    )
+
+    return Schema.from_descriptor(
+        merged_descriptor
+    )

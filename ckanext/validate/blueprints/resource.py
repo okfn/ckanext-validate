@@ -144,7 +144,10 @@ def validate_test_file_view():
         try:
             uploaded_file.save(tmp_path)
 
-            report = get_validation_report("file://" + tmp_path, format="csv")
+            report = get_validation_report(
+                "file://" + tmp_path,
+                resource_format="csv",
+            )
 
             report_valid = report.valid
             errors = h.collect_report_errors(report)
