@@ -14,16 +14,6 @@ validation_configuration_blueprint = Blueprint(
 )
 
 
-DEFAULT_SCHEMA = json.dumps(
-    {
-        "fields": [],
-        "_validate_rules": [],
-    },
-    indent=2,
-    ensure_ascii=False,
-)
-
-
 def _get_admin_context():
     """Return the current CKAN context and ensure sysadmin access."""
     context = {

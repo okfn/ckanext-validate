@@ -23,32 +23,29 @@ def _get_configuration(configuration_id):
     return configuration
 
 
-def _get_name(data_dict, required=True):
-    if "name" not in data_dict:
-        if required:
-            raise toolkit.ValidationError(
-                {
-                    "name": [
-                        toolkit._(
-                            "A configuration name is required."
-                        )
-                    ]
-                }
-            )
+def _validation_error(field, message):
+    raise toolkit.ValidationError(
+        {
+            field: [
+                toolkit._(message)
+            ]
+        }
+    )
 
-        return None
+
+def _get_name(data_dict):
+    if "name" not in data_dict:
+        _validation_error(
+            "name",
+            "A configuration name is required.",
+        )
 
     name = str(data_dict.get("name") or "").strip()
 
     if not name:
-        raise toolkit.ValidationError(
-            {
-                "name": [
-                    toolkit._(
-                        "A configuration name is required."
-                    )
-                ]
-            }
+        _validation_error(
+            "name",
+            "A configuration name is required.",
         )
 
     return name
@@ -64,24 +61,16 @@ def _get_description(data_dict):
     return description or None
 
 
-def _get_schema_descriptor(data_dict, required=True):
+def _get_schema_descriptor(data_dict):
     """Return the schema descriptor from a dictionary or JSON string."""
     has_schema = "schema" in data_dict
     has_schema_descriptor = "schema_descriptor" in data_dict
 
     if not has_schema and not has_schema_descriptor:
-        if required:
-            raise toolkit.ValidationError(
-                {
-                    "schema": [
-                        toolkit._(
-                            "A Frictionless schema is required."
-                        )
-                    ]
-                }
-            )
-
-        return None
+        _validation_error(
+            "schema",
+            "A Frictionless schema is required.",
+        )
 
     value = (
         data_dict.get("schema")
@@ -93,25 +82,17 @@ def _get_schema_descriptor(data_dict, required=True):
         try:
             value = json.loads(value)
         except json.JSONDecodeError as exc:
-            raise toolkit.ValidationError(
-                {
-                    "schema": [
-                        toolkit._(
-                            "The schema is not valid JSON: {0}"
-                        ).format(str(exc))
-                    ]
-                }
+            _validation_error(
+                "schema",
+                "The schema is not valid JSON: {0}".format(
+                    str(exc)
+                ),
             )
 
     if not isinstance(value, dict):
-        raise toolkit.ValidationError(
-            {
-                "schema": [
-                    toolkit._(
-                        "The Frictionless schema must be a JSON object."
-                    )
-                ]
-            }
+        _validation_error(
+            "schema",
+            "The Frictionless schema must be a JSON object.",
         )
 
     return value
@@ -147,15 +128,10 @@ def _get_boolean(value, field_name, default=None):
 
 
 def _raise_duplicate_name():
-    raise toolkit.ValidationError(
-        {
-            "name": [
-                toolkit._(
-                    "A validation configuration with this name "
-                    "already exists."
-                )
-            ]
-        }
+    _validation_error(
+        "name",
+        "A validation configuration with this name "
+        "already exists.",
     )
 
 
@@ -310,8 +286,6 @@ def validation_configuration_delete(context, data_dict):
 
     result = configuration.as_dict()
 
-    ValidationConfiguration.delete_by_id(
-        configuration_id
-    )
+    configuration.delete()
 
     return result

@@ -177,10 +177,14 @@ class ValidationConfiguration(
         for key, value in values.items():
             setattr(self, key, value)
 
-        self.update_timestamp = datetime.now(timezone.utc)
         self.commit()
 
         return self
+
+    def delete(self):
+        """Delete this configuration instance."""
+        Session.delete(self)
+        Session.commit()
 
     @classmethod
     def delete_by_id(cls, configuration_id):
@@ -190,8 +194,7 @@ class ValidationConfiguration(
         if not record:
             return False
 
-        Session.delete(record)
-        Session.commit()
+        record.delete()
 
         return True
 
