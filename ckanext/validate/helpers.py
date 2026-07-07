@@ -311,3 +311,66 @@ def validation_error_message(error):
             messages.append(str(value))
 
     return "; ".join(messages) or str(error)
+
+
+def validation_error_title(error_type, fallback=None):
+    """Return a user-friendly translated title for a validation error."""
+    titles = {
+        "missing-label": toolkit._("Missing header"),
+        "duplicate-label": toolkit._("Duplicate header"),
+        "blank-row": toolkit._("Empty row"),
+        "type-error": toolkit._("Type mismatch"),
+        "missing-cell": toolkit._("Missing value"),
+        "extra-cell": toolkit._("Extra cell"),
+        "blank-header": toolkit._("Missing header"),
+        "blank-label": toolkit._("Blank label"),
+        "structure-error": toolkit._("Structural validation error"),
+    }
+
+    return (
+        titles.get(error_type)
+        or fallback
+        or toolkit._("Validation error")
+    )
+
+
+def validation_error_description(error_type, fallback=None):
+    """Return a user-friendly translated description for an error."""
+    descriptions = {
+        "missing-label": toolkit._(
+            "A column in the header row has no name. "
+            "Every column should have a unique, non-empty header."
+        ),
+        "duplicate-label": toolkit._(
+            "Two or more columns share the same name. "
+            "Column names must be unique."
+        ),
+        "blank-row": toolkit._(
+            "This row has no data. Rows should contain at least "
+            "one cell with data."
+        ),
+        "type-error": toolkit._(
+            "A cell value does not match the expected data type "
+            "or format for the column."
+        ),
+        "missing-cell": toolkit._(
+            "This cell is missing data."
+        ),
+        "extra-cell": toolkit._(
+            "This row has more values than the header row."
+        ),
+        "blank-header": toolkit._(
+            "A column in the header row has no name. "
+            "Every column should have a unique, non-empty header."
+        ),
+        "blank-label": toolkit._(
+            "A label in the header row is missing a value. "
+            "Labels must not be blank."
+        ),
+        "structure-error": toolkit._(
+            "The validator could not extract row-level errors "
+            "from the validation report."
+        ),
+    }
+
+    return descriptions.get(error_type) or fallback
