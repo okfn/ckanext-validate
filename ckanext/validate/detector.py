@@ -36,6 +36,34 @@ def _to_date(value, date_format):
 
 
 def _majority_numeric_type(values, confidence):
+    """Detect whether most values in a column are numeric.
+
+    Every value is parsed using ``Decimal`` so that integer and decimal
+    values can be detected without relying on floating-point conversion.
+
+    The column is considered numeric only when the proportion of values
+    successfully parsed as numbers is greater than or equal to
+    ``confidence``.
+
+    Returns:
+        ``"integer"`` when every numeric value is a whole number.
+        ``"number"`` when at least one numeric value has decimals.
+        ``None`` when the required confidence is not reached.
+
+    Example:
+        Given the values::
+
+            100
+            250.50
+            300
+            invalid
+
+        the column is detected as ``number`` when the configured confidence
+        allows the three numeric values to represent the majority.
+
+        Frictionless will then report ``invalid`` as a type error during
+        resource validation.
+    """
     if not values:
         return None
 
@@ -52,6 +80,27 @@ def _majority_numeric_type(values, confidence):
 
 
 def _date_format(values, confidence):
+    """Detect the date format used by most values in a column.
+
+    Each value is tested against the supported formats defined in
+    ``DATE_FORMATS``:
+
+        - ``%m/%d/%Y``: month/day/year
+        - ``%d/%m/%Y``: day/month/year
+        - ``%Y-%m-%d``: year-month-day
+
+    The format matching the largest number of values is selected. It is
+    returned only when its match ratio is greater than or equal to
+    ``confidence``.
+
+    Once a format is selected, the complete column is validated using that
+    format. Values that do not conform to it are reported by Frictionless as
+    type or format errors.
+
+    Returns:
+        The detected ``strptime`` format, or ``None`` when no format reaches
+        the configured confidence.
+    """
     if not values:
         return None
 

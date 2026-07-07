@@ -371,3 +371,31 @@ msgstr "Falta un valor en una etiqueta del encabezado. Las etiquetas no pueden e
 #: ckanext/validate/helpers.py:370
 msgid "The validator could not extract row-level errors from the validation report."
 msgstr "El validador no pudo extraer errores a nivel de fila del informe de validación."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:4
+msgid "Validation rules applied"
+msgstr "Reglas de validación aplicadas"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:9
+msgid "The validator analyzes the predominant values in each column to determine the expected data type."
+msgstr "El validador analiza los valores predominantes de cada columna para determinar el tipo de dato esperado."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:17
+msgid "Numeric values"
+msgstr "Valores numéricos"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:20
+msgid "When most values in a column are numeric, the column is validated as an integer or decimal number. Values containing text or an incompatible numeric format are reported as errors."
+msgstr "Cuando la mayoría de los valores de una columna son numéricos, la columna se valida como un número entero o decimal. Los valores que contienen texto o un formato numérico incompatible se informan como errores."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:29
+msgid "Date values"
+msgstr "Valores de fecha"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:32
+msgid "When most values in a column are dates, the most commonly used date format is applied to the complete column. Values using a different or invalid format are reported as errors."
+msgstr "Cuando la mayoría de los valores de una columna son fechas, el formato de fecha más utilizado se aplica a toda la columna. Los valores que utilizan un formato diferente o inválido se informan como errores."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:40
+msgid "Supported date formats:"
+msgstr "Formatos de fecha admitidos:"

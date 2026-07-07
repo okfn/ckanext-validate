@@ -1,0 +1,47 @@
+<section class="validate-summary validate-rules">
+  <div class="validate-summary__top">
+    <h2 class="validate-summary__title">
+      {{ _('Validation rules applied') }}
+    </h2>
+  </div>
+
+  <p class="validate-summary__text">
+    {{ _(
+      'The validator analyzes the predominant values in each column '
+      'to determine the expected data type.'
+    ) }}
+  </p>
+
+  <ul class="validate-rules__list">
+    <li class="validate-rules__item">
+      <strong>{{ _('Numeric values') }}</strong>
+
+      <p>
+        {{ _(
+          'When most values in a column are numeric, the column is '
+          'validated as an integer or decimal number. Values containing '
+          'text or an incompatible numeric format are reported as errors.'
+        ) }}
+      </p>
+    </li>
+
+    <li class="validate-rules__item">
+      <strong>{{ _('Date values') }}</strong>
+
+      <p>
+        {{ _(
+          'When most values in a column are dates, the most commonly used '
+          'date format is applied to the complete column. Values using a '
+          'different or invalid format are reported as errors.'
+        ) }}
+      </p>
+
+      <p>
+        <strong>{{ _('Supported date formats:') }}</strong>
+        <code>MM/DD/YYYY</code>,
+        <code>DD/MM/YYYY</code>,
+        <code>YYYY-MM-DD</code>.
+      </p>
+    </li>
+  </ul>
+</section>
