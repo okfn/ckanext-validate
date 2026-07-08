@@ -1,6 +1,3 @@
-
-{% snippet 'validate/snippets/validation_rules.html' %}
-
 {% for group in error_groups %}
   {% set error_type = group['type'] or group['key'] %}
     {% set error_title = h.validation_error_title(
