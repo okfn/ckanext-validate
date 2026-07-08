@@ -127,3 +127,58 @@ def test_group_validation_errors_merges_preview_rows_with_multiple_column_errors
     assert [row["row_number"] for row in preview_rows] == [12, 13]
     assert preview_rows[0]["highlight_columns"] == [2, 4]
     assert preview_rows[1]["highlight_columns"] == [3]
+
+
+
+@pytest.mark.parametrize(
+    ("error_type", "expected"),
+    [
+        ("blank-label", "Blank label"),
+        ("duplicate-label", "Duplicate header"),
+        ("blank-row", "Empty row"),
+        ("type-error", "Type mismatch"),
+    ],
+)
+
+
+def test_validation_error_title(
+        monkeypatch,
+        error_type,
+        expected,
+    ):
+    monkeypatch.setattr(
+        helpers.toolkit,
+        "_",
+        lambda value: value,
+    )
+
+    assert helpers.validation_error_title(
+        error_type,
+        "Original title",
+    ) == expected
+
+
+def test_validation_error_title_uses_fallback(monkeypatch):
+    monkeypatch.setattr(
+        helpers.toolkit,
+        "_",
+        lambda value: value,
+    )
+
+    assert helpers.validation_error_title(
+        "unknown-error",
+        "Frictionless title",
+    ) == "Frictionless title"
+
+
+def test_validation_error_description_uses_fallback(monkeypatch):
+    monkeypatch.setattr(
+        helpers.toolkit,
+        "_",
+        lambda value: value,
+    )
+
+    assert helpers.validation_error_description(
+        "unknown-error",
+        "Frictionless description",
+    ) == "Frictionless description"

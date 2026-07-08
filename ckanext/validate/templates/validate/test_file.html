@@ -30,6 +30,7 @@
     {% if not report_valid and error_groups %}
       <div class="validate-errors">
         {% snippet 'validate/snippets/error_groups.html', error_groups=error_groups, error_row_limit=error_row_limit %}
+        {% snippet 'validate/snippets/validation_rules.html' %}
       </div>
     {% endif %}
   {% endif %}

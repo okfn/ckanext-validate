@@ -1,10 +1,23 @@
 {% for group in error_groups %}
+  {% set error_type = group['type'] or group['key'] %}
+    {% set error_title = h.validation_error_title(
+      error_type,
+      group['title']
+    ) %}
+    {% set error_description = h.validation_error_description(
+      error_type,
+      group['description']
+    ) %}
   <section class="validate-error-card">
     <div class="validate-error-card__header">
       <div>
-        <h3 class="validate-error-card__title">{{ group['title'] }}</h3>
-        {% if group['description'] %}
-          <p class="validate-error-card__description">{{ group['description'] }}</p>
+        <h3 class="validate-error-card__title">
+          {{ error_title }}
+        </h3>
+        {% if error_description %}
+          <p class="validate-error-card__description">
+            {{ error_description }}
+          </p>
         {% endif %}
       </div>
       <span class="validate-error-card__count">{{ group['count'] }}</span>

@@ -307,3 +307,95 @@ msgstr "Columna"
 msgid "Showing only the first {0} rows for this error type."
 msgstr "Mostrando solo las primeras {0} filas para este tipo de error."
 
+
+#: ckanext/validate/helpers.py:319 ckanext/validate/helpers.py:325
+msgid "Missing header"
+msgstr "Encabezado faltante"
+
+#: ckanext/validate/helpers.py:320
+msgid "Duplicate header"
+msgstr "Encabezado duplicado"
+
+#: ckanext/validate/helpers.py:321
+msgid "Empty row"
+msgstr "Fila vacía"
+
+#: ckanext/validate/helpers.py:322
+msgid "Type mismatch"
+msgstr "Tipo de dato incorrecto"
+
+#: ckanext/validate/helpers.py:323
+msgid "Missing value"
+msgstr "Valor faltante"
+
+#: ckanext/validate/helpers.py:324
+msgid "Extra cell"
+msgstr "Celda adicional"
+
+#: ckanext/validate/helpers.py:326
+msgid "Blank label"
+msgstr "Etiqueta vacía"
+
+#: ckanext/validate/helpers.py:327
+msgid "Structural validation error"
+msgstr "Error estructural de validación"
+
+#: ckanext/validate/helpers.py:340 ckanext/validate/helpers.py:362
+msgid "A column in the header row has no name. Every column should have a unique, non-empty header."
+msgstr "Una columna de la fila de encabezado no tiene nombre. Cada columna debe tener un encabezado único y no vacío."
+
+#: ckanext/validate/helpers.py:344
+msgid "Two or more columns share the same name. Column names must be unique."
+msgstr "Dos o más columnas tienen el mismo nombre. Los nombres de las columnas deben ser únicos."
+
+#: ckanext/validate/helpers.py:348
+msgid "This row has no data. Rows should contain at least one cell with data."
+msgstr "Esta fila no contiene datos. Las filas deben contener al menos una celda con datos."
+
+#: ckanext/validate/helpers.py:352
+msgid "A cell value does not match the expected data type or format for the column."
+msgstr "El valor de una celda no coincide con el tipo de dato o formato esperado para la columna."
+
+#: ckanext/validate/helpers.py:356
+msgid "This cell is missing data."
+msgstr "Esta celda no contiene un valor."
+
+#: ckanext/validate/helpers.py:359
+msgid "This row has more values than the header row."
+msgstr "Esta fila tiene más valores que la fila de encabezado."
+
+#: ckanext/validate/helpers.py:366
+msgid "A label in the header row is missing a value. Labels must not be blank."
+msgstr "Falta un valor en una etiqueta del encabezado. Las etiquetas no pueden estar vacías."
+
+#: ckanext/validate/helpers.py:370
+msgid "The validator could not extract row-level errors from the validation report."
+msgstr "El validador no pudo extraer errores a nivel de fila del informe de validación."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:4
+msgid "Validation rules applied"
+msgstr "Reglas de validación aplicadas"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:9
+msgid "The validator analyzes the predominant values in each column to determine the expected data type."
+msgstr "El validador analiza los valores predominantes de cada columna para determinar el tipo de dato esperado."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:17
+msgid "Numeric values"
+msgstr "Valores numéricos"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:20
+msgid "When most values in a column are numeric, the column is validated as an integer or decimal number. Values containing text or an incompatible numeric format are reported as errors."
+msgstr "Cuando la mayoría de los valores de una columna son numéricos, la columna se valida como un número entero o decimal. Los valores que contienen texto o un formato numérico incompatible se informan como errores."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:29
+msgid "Date values"
+msgstr "Valores de fecha"
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:32
+msgid "When most values in a column are dates, the most commonly used date format is applied to the complete column. Values using a different or invalid format are reported as errors."
+msgstr "Cuando la mayoría de los valores de una columna son fechas, el formato de fecha más utilizado se aplica a toda la columna. Los valores que utilizan un formato diferente o inválido se informan como errores."
+
+#: ckanext/validate/templates/validate/snippets/validation_detector.html:40
+msgid "Supported date formats:"
+msgstr "Formatos de fecha admitidos:"

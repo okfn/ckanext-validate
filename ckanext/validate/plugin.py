@@ -90,4 +90,6 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
         return {
             "get_resource_validation_state": h.get_resource_validation_state,
             "get_resource_validation_job_status": h.get_resource_validation_job_status,
+            "validation_error_title": (h.validation_error_title),
+            "validation_error_description": (h.validation_error_description),
         }
