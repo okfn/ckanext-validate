@@ -1,119 +1,65 @@
 # Lista completa de errores de tabla detectados
 
-Este documento describe los errores de validación actualmente detectados por
+Este documento describe los errores de validacion que actualmente presenta
 `ckanext-validate` al validar recursos CSV.
 
-La extensión utiliza Frictionless para inferir la estructura de la tabla y validar el
-archivo. También aplica reglas de detección adicionales para columnas numéricas y de fechas.
+La extension usa Frictionless para inferir la estructura de la tabla y validar
+el archivo. Tambien aplica reglas adicionales de deteccion para columnas
+numericas y de fecha.
 
-## Reglas de validación actuales
+## Reglas de validacion
 
-Antes de validar un archivo CSV, la extensión aplica las siguientes reglas:
+Antes de validar un archivo CSV, la extension aplica las siguientes reglas:
 
-- Todas las columnas son requeridas.
+- Cada columna inferida se configura como obligatoria.
 - Los valores `null`, `NULL` y `None` se tratan como valores faltantes.
-- Una columna se considera numérica cuando al menos el 50% de sus valores no faltantes
-  pueden ser analizados como números.
-- Una columna numérica se infiere como `integer` cuando todos los valores numéricos detectados
-  son números enteros. De lo contrario, se infiere como `number`.
-- Una columna se considera una columna de fecha cuando al menos el 50% de sus valores no faltantes
-  utilizan el mismo formato de fecha compatible.
-- Los formatos de fecha soportados son:
+- Una columna se considera numerica cuando al menos el 50% de sus valores no
+  faltantes se pueden interpretar como numeros.
+- Una columna numerica se infiere como `integer` cuando todos los valores
+  numericos detectados son enteros. De lo contrario, se infiere como `number`.
+- Una columna se considera de fecha cuando al menos el 50% de sus valores no
+  faltantes usa el mismo formato de fecha admitido.
+- Los formatos de fecha admitidos son:
   - `MM/DD/YYYY`, por ejemplo `04/25/2024`.
   - `DD/MM/YYYY`, por ejemplo `25/04/2024`.
   - `YYYY-MM-DD`, por ejemplo `2024-04-25`.
 
-Después de que se infiere el esquema, Frictionless valida cada fila en contra del mismo.
-Los valores que no coinciden con el tipo o formato inferido se reportan como errores.
+Despues de inferir el esquema, Frictionless valida cada fila contra ese
+esquema. Los valores que no coinciden con el tipo inferido, el formato o la
+restriccion requerida se reportan como errores de validacion.
 
-## Errores detectados
+## Errores que actualmente se muestran en el reporte
 
 ### Encabezado faltante
 
-**Tipo de error:** `blank-header`
+**Tipo de error:** `missing-label`
 
-Este error ocurre cuando la fila de encabezado del CSV está vacía. La primera fila debe contener
-los nombres de las columnas.
+Una columna de la fila de encabezados no tiene nombre. Cada columna debe tener
+un encabezado unico y no vacio.
 
-```csv
-,
-1,2
-3,4
-```
-
-### Nombre de columna faltante
-
-**Tipo de error:** `blank-label`
-
-Este error ocurre cuando una o más columnas en el encabezado no tienen nombre. Cada
-columna debe tener un nombre no vacío.
-
-```csv
-column_1,
-1,2
-3,4
-```
-
-### Nombre de columna duplicado
+### Encabezado duplicado
 
 **Tipo de error:** `duplicate-label`
 
-Este error ocurre cuando dos o más columnas tienen el mismo nombre. Cada nombre de
-columna debe ser único.
+Dos o mas columnas comparten el mismo nombre. Los nombres de columna deben ser
+unicos.
 
-```csv
-column_1,column_1
-1,2
-3,4
-```
-
-### Fila vacía
+### Fila vacia
 
 **Tipo de error:** `blank-row`
 
-Este error ocurre cuando una fila completamente vacía está presente en los datos del CSV.
+Esta fila no tiene datos. Las filas deben contener al menos una celda con
+datos.
 
-```csv
-column_1,column_2
-1,2
-
-3,4
-```
-
-### Valor faltante
-
-**Tipo de error:** `missing-cell`
-
-Este error ocurre cuando una fila tiene menos celdas que la fila de encabezado.
-
-```csv
-column_1,column_2
-1,2
-3
-```
-
-### Celda extra
-
-**Tipo de error:** `extra-cell`
-
-Este error ocurre cuando una fila tiene más celdas que la fila de encabezado. Cada fila de datos
-debe tener el mismo número de celdas que el encabezado.
-
-```csv
-column_1,column_2
-1,2
-3,4,5
-```
-
-### Desajuste de tipo
+### Incompatibilidad de tipo
 
 **Tipo de error:** `type-error`
 
-Este error ocurre cuando un valor no coincide con el tipo de dato inferido para su
-columna.
+El valor de una celda no coincide con el tipo de dato o el formato esperado
+para la columna.
 
-Por ejemplo, cuando la mayoría de valores en una columna son numéricos, un valor de texto se
-reporta como inválido:
+Por ejemplo, cuando la mayoria de los valores en una columna son numericos, un
+valor de texto se reporta como invalido:
 
 ```csv
 amount
@@ -123,8 +69,8 @@ amount
 invalid
 ```
 
-La misma regla se aplica a columnas de fechas. Una vez que se infiere un formato de fecha, los valores
-que utilizan otro formato o contienen fechas inválidas se reportan como errores:
+La misma regla aplica para las fechas. Una vez que se detecta un formato de
+fecha, los valores que no coinciden con ese formato se reportan como invalidos:
 
 ```csv
 date
@@ -133,42 +79,63 @@ date
 25/06/2024
 ```
 
-### Valor requerido faltante
+### Valor faltante
 
-**Tipo de error:** `constraint-error`
+**Tipo de error:** `missing-cell`
 
-Cada campo inferido está configurado como requerido. Este error ocurre cuando una
-celda requerida contiene un valor faltante.
+A esta celda le falta un dato.
 
-Los valores `null`, `NULL` y `None` se tratan explícitamente como faltantes:
+### Celda extra
+
+**Tipo de error:** `extra-cell`
+
+Esta fila tiene mas valores que la fila de encabezados.
 
 ```csv
 column_1,column_2
 1,2
-3,null
-4,None
+3,4,5
 ```
 
-### Error de validación estructural
+### Encabezado en blanco
+
+**Tipo de error:** `blank-header`
+
+Una columna de la fila de encabezados no tiene nombre. Cada columna debe tener
+un encabezado unico y no vacio.
+
+### Etiqueta en blanco
+
+**Tipo de error:** `blank-label`
+
+Una etiqueta en la fila de encabezados no tiene valor. Las etiquetas no deben
+estar en blanco.
+
+```csv
+column_1,
+1,2
+3,4
+```
+
+### Error estructural de validacion
 
 **Tipo de error:** `structure-error`
 
-Este es un error de reserva generado por `ckanext-validate` cuando Frictionless
-marca el recurso como inválido pero no proporciona detalles de errores a nivel de fila.
+El validador no pudo extraer errores por fila del reporte de validacion.
 
-Indica que el archivo contiene un problema estructural que no pudo ser
-representado como uno de los errores detallados enumerados arriba.
+Este es un error de respaldo generado por `ckanext-validate` cuando la
+validacion falla pero Frictionless no proporciona errores detallados por fila.
 
-## Comportamiento del informe de errores
+## Comportamiento del reporte de errores
 
-Los errores de validación se agrupan por tipo de error en el informe.
+Los errores de validacion se agrupan por tipo de error.
 
-Para cada grupo, el informe muestra:
+Para cada grupo, el reporte muestra:
 
-- El título y descripción del error.
-- El número total de ocurrencias.
+- Un titulo amigable para el usuario.
+- Una descripcion del error.
+- El numero total de ocurrencias.
 - Una vista previa de las filas y celdas afectadas.
 - Hasta 20 filas afectadas.
 
-Cuando un grupo de errores contiene más de 20 filas, el informe indica que solo
-se están mostrando los primeros 20.
+Cuando un grupo contiene mas de 20 filas, solo se muestran las primeras 20.
