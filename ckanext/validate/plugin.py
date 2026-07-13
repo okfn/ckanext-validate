@@ -5,8 +5,14 @@ import ckan.plugins.toolkit as toolkit
 from ckan.lib.plugins import DefaultTranslation
 
 from ckanext.validate.actions import action as validate_action
+from ckanext.validate.actions import (
+    validation_configuration as validation_configuration_action,
+)
 from ckanext.validate.auth import validation as validate_auth
-from ckanext.validate.blueprints import resource, admin
+from ckanext.validate.auth import (
+    validation_configuration as validation_configuration_auth,
+)
+from ckanext.validate.blueprints import resource, admin, validation_configuration
 from ckanext.validate import resource_hooks
 from ckanext.validate import helpers as h
 
@@ -46,6 +52,12 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
             "resource_validation_show": validate_action.resource_validation_show,
             "validation_job_list": validate_action.validation_job_list,
             "resource_validation_status": validate_action.resource_validation_status,
+            # Validation Configuration Actions
+            "validation_configuration_create": validation_configuration_action.validation_configuration_create,
+            "validation_configuration_update": validation_configuration_action.validation_configuration_update,
+            "validation_configuration_delete": validation_configuration_action.validation_configuration_delete,
+            "validation_configuration_list": validation_configuration_action.validation_configuration_list,
+            "validation_configuration_show": validation_configuration_action.validation_configuration_show,
         }
 
     # IAuthFunctions
@@ -56,6 +68,12 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
             "resource_validation_show": validate_auth.resource_validation_show,
             "validation_job_list": validate_auth.validation_job_list,
             "resource_validation_status": validate_auth.resource_validation_status,
+            # Validation Configuration Auth Functions
+            "validation_configuration_create": validation_configuration_auth.validation_configuration_create,
+            "validation_configuration_update": validation_configuration_auth.validation_configuration_update,
+            "validation_configuration_delete": validation_configuration_auth.validation_configuration_delete,
+            "validation_configuration_list": validation_configuration_auth.validation_configuration_list,
+            "validation_configuration_show": validation_configuration_auth.validation_configuration_show,
         }
 
     # IBlueprint
@@ -65,6 +83,7 @@ class ValidatePlugin(plugins.SingletonPlugin, DefaultTranslation):
             resource.resource_validate_blueprint,
             resource.validate_test_file_blueprint,
             admin.validation_jobs_blueprint,
+            validation_configuration.validation_configuration_blueprint,
         ]
 
     # IResourceController
