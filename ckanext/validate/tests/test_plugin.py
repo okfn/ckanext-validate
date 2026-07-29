@@ -95,6 +95,7 @@ def test_plugin_registers_expected_auth_functions():
         "resource_validation_show": validate_auth.resource_validation_show,
         "validation_job_list": validate_auth.validation_job_list,
         "resource_validation_status": validate_auth.resource_validation_status,
+        "validate_test_file": validate_auth.validate_test_file,
     }
 
 

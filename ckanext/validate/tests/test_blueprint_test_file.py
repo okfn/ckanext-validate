@@ -1,19 +1,18 @@
 """
-Tests for the /ckan-admin/testfile admin view.
+Tests for the /testfile CSV validation view.
 
 Covers:
-  - Access control: only sysadmins can access the view (anonymous and regular
-    users get 403).
-  - GET: the form renders correctly for a sysadmin.
+  - Access control: organization editors, organization admins and sysadmins
+    can access the view.
+  - Anonymous users, regular users and organization members receive 403.
+  - GET renders the CSV validation form.
   - POST without a file shows the expected error.
   - POST with a non-CSV file shows the expected error.
-  - POST with a valid CSV returns a success alert.
-  - POST with an invalid CSV returns an error table (row / field / message).
-  - POST with an invalid CSV that has no task-level errors shows the generic
-    structural-error message.
+  - POST with a valid CSV returns a success result.
+  - POST with an invalid CSV returns grouped validation errors.
 
-Authentication uses API tokens (SysadminWithToken / UserWithToken) so that
-Flask-WTF CSRF protection is automatically bypassed for POST requests.
+Authentication uses API tokens so Flask-WTF CSRF protection is bypassed for
+the POST requests used by these functional tests.
 """
 
 import io
@@ -26,7 +25,7 @@ from ckan.tests import factories
 from ckanext.validate.blueprints import resource as validate_resource
 from .conftest import DummyReport
 
-TEST_FILE_URL = "/ckan-admin/testfile"
+TEST_FILE_URL = "/testfile"
 
 
 # ---------------------------------------------------------------------------
@@ -35,11 +34,19 @@ TEST_FILE_URL = "/ckan-admin/testfile"
 
 
 class TestTestFileViewAccess:
-    """Only sysadmins should be able to reach /ckan-admin/testfile."""
+    """Editors, organization admins and sysadmins can access /testfile."""
+
+    forbidden_message = (
+        "You must be an editor or administrator to validate a file."
+    )
 
     def test_anonymous_user_is_forbidden(self, app):
-        response = app.get(TEST_FILE_URL, status=403)
-        assert "Need to be system administrator to administer" in response
+        response = app.get(
+            TEST_FILE_URL,
+            status=403,
+        )
+
+        assert self.forbidden_message in response
 
     def test_regular_user_is_forbidden(self, app):
         user = factories.UserWithToken()
@@ -50,10 +57,72 @@ class TestTestFileViewAccess:
             status=403,
         )
 
-        assert "Need to be system administrator to administer" in response
+        assert self.forbidden_message in response
+
+    def test_organization_member_is_forbidden(self, app):
+        member = factories.UserWithToken()
+
+        factories.Organization(
+            users=[
+                {
+                    "name": member["name"],
+                    "capacity": "member",
+                }
+            ]
+        )
+
+        response = app.get(
+            TEST_FILE_URL,
+            headers={"Authorization": member["token"]},
+            status=403,
+        )
+
+        assert self.forbidden_message in response
+
+    def test_organization_editor_can_access(self, app):
+        editor = factories.UserWithToken()
+
+        factories.Organization(
+            users=[
+                {
+                    "name": editor["name"],
+                    "capacity": "editor",
+                }
+            ]
+        )
+
+        response = app.get(
+            TEST_FILE_URL,
+            headers={"Authorization": editor["token"]},
+            status=200,
+        )
+
+        assert "Validate a CSV File" in response
+        assert "Select a CSV File for Validation" in response
+
+    def test_organization_admin_can_access(self, app):
+        organization_admin = factories.UserWithToken()
+
+        factories.Organization(
+            users=[
+                {
+                    "name": organization_admin["name"],
+                    "capacity": "admin",
+                }
+            ]
+        )
+
+        response = app.get(
+            TEST_FILE_URL,
+            headers={"Authorization": organization_admin["token"]},
+            status=200,
+        )
+
+        assert "Validate a CSV File" in response
 
     def test_sysadmin_can_access(self, app):
         sysadmin = factories.SysadminWithToken()
+
         response = app.get(
             TEST_FILE_URL,
             headers={"Authorization": sysadmin["token"]},
