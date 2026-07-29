@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends "page.html" %}
 
 {% block subtitle %}{{ _('Validate File') }}{% endblock %}
 
@@ -49,6 +49,22 @@
           {{ _('Validate') }}
         </button>
       </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block secondary_content %}
+  <div class="module module-narrow module-shallow">
+    <div class="module-content">
+      <h3>{{ _('About CSV Validation') }}</h3>
+      <p>
+        {{ _('This tool checks your CSV file for common formatting errors and issues that may prevent it from being used effectively in data applications.') }}
+      </p>
+      <ul>
+        <li>{{ _('Checks for missing headers or inconsistent column counts.') }}</li>
+        <li>{{ _('Validates data types and formats for each column.') }}</li>
+        <li>{{ _('Identifies duplicate rows or entries.') }}</li>
+      </ul>
     </div>
   </div>
 {% endblock %}

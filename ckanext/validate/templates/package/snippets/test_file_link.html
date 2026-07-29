@@ -1,0 +1,15 @@
+{% if h.check_access('validate_test_file') %}
+  <li>
+    <a
+      href="{{ h.url_for(
+        'validate_test_file.validate_test_file_view'
+      ) }}"
+      title="{{ _('Validate CSV file') }}"
+    >
+      <i class="fa fa-check-circle"></i>
+      <span class="text">
+        {{ _('Validate CSV') }}
+      </span>
+    </a>
+  </li>
+{% endif %}
