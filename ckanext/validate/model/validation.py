@@ -51,6 +51,32 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
         )
 
     @classmethod
+    def get_by_date_range(cls, start_date, end_date):
+        """Return validations created within a date range.
+
+        ``start_date`` is inclusive and ``end_date`` is exclusive. This avoids
+        returning the same validation in two consecutive reporting periods.
+        """
+        if (
+            not isinstance(start_date, datetime)
+            or not isinstance(end_date, datetime)
+        ):
+            raise ValueError("start_date and end_date must be datetime objects")
+
+        if start_date >= end_date:
+            raise ValueError("start_date must be earlier than end_date")
+
+        return (
+            Session.query(cls)
+            .filter(
+                cls.created >= start_date,
+                cls.created < end_date,
+            )
+            .order_by(cls.created.desc())
+            .all()
+        )
+
+    @classmethod
     def get_resource_status(cls, resource_id):
         """Return the most recent validation status for a resource, or None."""
         record = cls.get_latest(resource_id)
