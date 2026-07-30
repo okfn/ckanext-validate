@@ -1,11 +1,19 @@
 from datetime import datetime, timezone
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, DateTime, Index, Integer, UnicodeText
 
 from ckan.model.types import JsonDictType
 from ckan.model.base import ActiveRecordMixin
 from ckan.model import Session
 from ckan.plugins import toolkit
+
+
+VALIDATION_PERIODS = {
+    "1_month": 1,
+    "6_months": 6,
+    "1_year": 12,
+}
 
 
 class Validation(toolkit.BaseModel, ActiveRecordMixin):
@@ -75,6 +83,24 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
             .order_by(cls.created.desc())
             .all()
         )
+
+    @classmethod
+    def get_by_period(cls, period, end_date=None):
+        """Return validations from one of the supported reporting periods."""
+        months = VALIDATION_PERIODS.get(period)
+        if months is None:
+            raise ValueError(
+                "Invalid period. Valid values are: {0}".format(
+                    ", ".join(VALIDATION_PERIODS)
+                )
+            )
+
+        end_date = end_date or datetime.now(timezone.utc)
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")
+
+        start_date = end_date - relativedelta(months=months)
+        return cls.get_by_date_range(start_date, end_date)
 
     @classmethod
     def get_resource_status(cls, resource_id):
