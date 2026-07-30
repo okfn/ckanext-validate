@@ -159,35 +159,7 @@
     {% endif %}
   </section>
 
-  {# Tabla detallada de errores por tipo — validation_statistics.html #}
-  <section class="validation-chart-card">
-    <h2>{{ _('Errors by type') }}</h2>
-
-    {% if errors_by_type %}
-      <table class="table table-condensed table-bordered">
-        <thead>
-          <tr>
-            <th>{{ _('Error type') }}</th>
-            <th>{{ _('Count') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for error in errors_by_type %}
-            <tr>
-              <td>{{ h.validation_error_title(error.type, error.type) }}</td>
-              <td>{{ error.count }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="alert alert-info">
-        {{ _('No validation errors were found for the selected period.') }}
-      </div>
-    {% endif %}
-  </section>
-
-  {# Tabla resumen de recursos — validation_statistics.html #}
+  {# Tabla resumen de recursos #}
   <section class="validation-chart-card">
     <h2>{{ _('Resources summary') }}</h2>
 
