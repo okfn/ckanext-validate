@@ -3,6 +3,7 @@
 {% block content_primary_nav %}
   {{ super() }}
   {{ h.build_nav_icon('validate_admin.validation_jobs', _('Validation Jobs'), icon='tasks') }}
+  {{ h.build_nav_icon('validate_admin.validation_statistics', _('Validation Statistics'), icon='bar-chart') }}
 {% endblock %}
 
 {% block styles %}

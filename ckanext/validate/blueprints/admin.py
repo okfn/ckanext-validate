@@ -5,6 +5,7 @@ from flask import Blueprint
 from ckan.lib import base
 from ckan.plugins import toolkit
 
+from ckanext.validate.model.validation import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.helpers import format_timestamp_for_display
 
@@ -82,5 +83,83 @@ def validation_jobs():
             "jobs": enriched_jobs,
             "available_statuses": available_statuses,
             "selected_status": selected_status,
+        },
+    )
+
+
+VALIDATION_STATISTICS_PERIODS = {
+    "1_month": "1 month",
+    "6_months": "6 months",
+    "1_year": "1 year",
+}
+
+
+@validation_jobs_blueprint.route(
+    "/ckan-admin/validation-statistics",
+    methods=["GET"],
+)
+def validation_statistics():
+    """Display validation statistics for a predefined reporting period."""
+    context = {"user": toolkit.current_user.name}
+
+    try:
+        toolkit.check_access("sysadmin", context)
+    except toolkit.NotAuthorized:
+        base.abort(
+            403,
+            toolkit._("Need to be system administrator to administer"),
+        )
+
+    selected_period = toolkit.request.args.get(
+        "period",
+        "1_month",
+    ).strip()
+
+    if selected_period not in VALIDATION_STATISTICS_PERIODS:
+        toolkit.h.flash_error(
+            toolkit._("Invalid statistics period: {0}").format(
+                selected_period
+            )
+        )
+        selected_period = "1_month"
+
+    validations = Validation.get_by_period(selected_period)
+    summary = Validation.get_statistics_summary(validations)
+    errors_by_type = Validation.group_errors_by_type(validations)
+    resources = Validation.group_errors_by_resource(validations)
+
+    resource_show = toolkit.get_action("resource_show")
+
+    for resource_summary in resources:
+        resource_summary["resource_name"] = resource_summary["resource_id"]
+        resource_summary["resource_url"] = None
+
+        try:
+            resource = resource_show(
+                context,
+                {"id": resource_summary["resource_id"]},
+            )
+        except (toolkit.ObjectNotFound, toolkit.NotAuthorized):
+            continue
+
+        resource_summary["resource_name"] = (
+            resource.get("name")
+            or resource.get("description")
+            or resource_summary["resource_id"]
+        )
+        resource_summary["resource_url"] = toolkit.url_for(
+            "resource.read",
+            id=resource["package_id"],
+            resource_id=resource["id"],
+        )
+
+    return base.render(
+        "admin/validation_statistics.html",
+        extra_vars={
+            "summary": summary,
+            "errors_by_type": errors_by_type,
+            "resources": resources,
+            "periods": VALIDATION_STATISTICS_PERIODS,
+            "selected_period": selected_period,
         },
     )

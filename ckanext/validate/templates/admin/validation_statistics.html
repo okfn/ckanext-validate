@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block subtitle %}{{ _('Validation Statistics') }}{% endblock %}
+
+{% block primary_content_inner %}
+  <h1>{{ _('Validation Statistics') }}</h1>
+
+  <p class="text-muted">
+    {{ _('Summary of CSV validation results for the selected period.') }}
+  </p>
+
+  <form method="get" class="form-inline" style="margin-bottom: 20px;">
+    <div class="form-group">
+      <label for="period">{{ _('Period') }}</label>
+      <select name="period" id="period" class="form-control">
+        {% for period, label in periods.items() %}
+          <option value="{{ period }}"{% if selected_period == period %} selected{% endif %}>
+            {{ _(label) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-filter"></i>
+      {{ _('Apply') }}
+    </button>
+  </form>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.validation_count }}</strong>
+        <div>{{ _('Validations') }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.resource_count }}</strong>
+        <div>{{ _('Resources') }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.valid_count }}</strong>
+        <div>{{ _('Valid') }} ({{ summary.valid_percentage }}%)</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.invalid_count }}</strong>
+        <div>{{ _('Invalid') }} ({{ summary.invalid_percentage }}%)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>{{ summary.error_count }}</strong>
+    {{ _('errors detected during the selected period.') }}
+  </div>
+
+  <h2>{{ _('Errors by type') }}</h2>
+
+  {% if errors_by_type %}
+    <table class="table table-condensed table-bordered">
+      <thead>
+        <tr>
+          <th>{{ _('Error type') }}</th>
+          <th>{{ _('Count') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for error in errors_by_type %}
+          <tr>
+            <td>{{ h.validation_error_title(error.type, error.type) }}</td>
+            <td>{{ error.count }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      {{ _('No validation errors were found for the selected period.') }}
+    </div>
+  {% endif %}
+
+  <h2>{{ _('Resources summary') }}</h2>
+
+  {% if resources %}
+    <table class="table table-condensed table-bordered">
+      <thead>
+        <tr>
+          <th>{{ _('Resource') }}</th>
+          <th>{{ _('Validations') }}</th>
+          <th>{{ _('Valid') }}</th>
+          <th>{{ _('Invalid') }}</th>
+          <th>{{ _('Errors') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for resource in resources %}
+          <tr>
+            <td>
+              {% if resource.resource_url %}
+                <a href="{{ resource.resource_url }}">
+                  {{ resource.resource_name }}
+                </a>
+              {% else %}
+                <code>{{ resource.resource_name }}</code>
+              {% endif %}
+            </td>
+            <td>{{ resource.validation_count }}</td>
+            <td>{{ resource.valid_count }}</td>
+            <td>{{ resource.invalid_count }}</td>
+            <td>{{ resource.error_count }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      {{ _('No validations were found for the selected period.') }}
+    </div>
+  {% endif %}
+{% endblock %}
