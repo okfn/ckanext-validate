@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime, timezone
 
 from dateutil.relativedelta import relativedelta
@@ -101,6 +102,112 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
 
         start_date = end_date - relativedelta(months=months)
         return cls.get_by_date_range(start_date, end_date)
+
+    @staticmethod
+    def _get_error_type(error):
+        """Return a stable grouping key for a stored validation error."""
+        if not isinstance(error, dict):
+            return "unknown"
+
+        return (
+            error.get("type")
+            or error.get("title")
+            or error.get("message")
+            or "unknown"
+        )
+
+    @classmethod
+    def group_errors_by_type(cls, validations):
+        """Count stored errors by error type for the given validations."""
+        error_counts = Counter()
+
+        for validation in validations:
+            errors = (
+                validation.errors
+                if isinstance(validation.errors, list)
+                else []
+            )
+
+            for error in errors:
+                error_counts[cls._get_error_type(error)] += 1
+
+            missing_details = max(
+                (validation.error_count or 0) - len(errors),
+                0,
+            )
+            if missing_details:
+                error_counts["unknown"] += missing_details
+
+        return [
+            {"type": error_type, "count": count}
+            for error_type, count in sorted(
+                error_counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )
+        ]
+
+    @classmethod
+    def group_errors_by_resource(cls, validations):
+        """Summarize validations and errors for each resource."""
+        resources = {}
+
+        for validation in validations:
+            summary = resources.setdefault(
+                validation.resource_id,
+                {
+                    "resource_id": validation.resource_id,
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                    "errors_by_type": Counter(),
+                },
+            )
+
+            summary["validation_count"] += 1
+            summary["error_count"] += validation.error_count or 0
+
+            if validation.status == "success":
+                summary["valid_count"] += 1
+            elif validation.status == "failure":
+                summary["invalid_count"] += 1
+
+            errors = (
+                validation.errors
+                if isinstance(validation.errors, list)
+                else []
+            )
+
+            for error in errors:
+                error_type = cls._get_error_type(error)
+                summary["errors_by_type"][error_type] += 1
+
+            missing_details = max(
+                (validation.error_count or 0) - len(errors),
+                0,
+            )
+            if missing_details:
+                summary["errors_by_type"]["unknown"] += missing_details
+
+        result = []
+
+        for summary in resources.values():
+            summary["errors_by_type"] = [
+                {"type": error_type, "count": count}
+                for error_type, count in sorted(
+                    summary["errors_by_type"].items(),
+                    key=lambda item: (-item[1], item[0]),
+                )
+            ]
+            result.append(summary)
+
+        return sorted(
+            result,
+            key=lambda item: (
+                -item["error_count"],
+                item["resource_id"],
+            ),
+        )
 
     @classmethod
     def get_resource_status(cls, resource_id):
