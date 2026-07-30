@@ -210,6 +210,48 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
         )
 
     @classmethod
+    def get_statistics_summary(cls, validations):
+        """Return the main statistical indicators for validations.
+
+        The counts represent validation executions. ``resource_count`` reports
+        how many different resources were included in the selected period.
+        """
+        validations = list(validations)
+        total_validations = len(validations)
+        valid_count = sum(
+            validation.status == "success"
+            for validation in validations
+        )
+        invalid_count = sum(
+            validation.status == "failure"
+            for validation in validations
+        )
+        other_count = total_validations - valid_count - invalid_count
+        error_count = sum(
+            validation.error_count or 0
+            for validation in validations
+        )
+        resource_count = len(
+            {validation.resource_id for validation in validations}
+        )
+
+        def percentage(count):
+            if not total_validations:
+                return 0.0
+            return round((count / total_validations) * 100, 2)
+
+        return {
+            "validation_count": total_validations,
+            "resource_count": resource_count,
+            "valid_count": valid_count,
+            "invalid_count": invalid_count,
+            "other_count": other_count,
+            "error_count": error_count,
+            "valid_percentage": percentage(valid_count),
+            "invalid_percentage": percentage(invalid_count),
+        }
+
+    @classmethod
     def get_resource_status(cls, resource_id):
         """Return the most recent validation status for a resource, or None."""
         record = cls.get_latest(resource_id)
