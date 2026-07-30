@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 
 from flask import Blueprint
 
@@ -123,10 +124,27 @@ def validation_statistics():
         )
         selected_period = "1_month"
 
-    validations = Validation.get_by_period(selected_period)
+    report_end = datetime.now(timezone.utc)
+    validations = Validation.get_by_period(
+        selected_period,
+        end_date=report_end,
+    )
     summary = Validation.get_statistics_summary(validations)
     errors_by_type = Validation.group_errors_by_type(validations)
     resources = Validation.group_errors_by_resource(validations)
+    timeline = Validation.get_statistics_timeline(
+        validations,
+        selected_period,
+        end_date=report_end,
+    )
+    max_error_type_count = max(
+        (item["count"] for item in errors_by_type),
+        default=1,
+    )
+    max_timeline_error_count = max(
+        (item["error_count"] for item in timeline),
+        default=1,
+    )
 
     resource_show = toolkit.get_action("resource_show")
 
@@ -161,5 +179,8 @@ def validation_statistics():
             "resources": resources,
             "periods": VALIDATION_STATISTICS_PERIODS,
             "selected_period": selected_period,
+            "timeline": timeline,
+            "max_error_type_count": max_error_type_count,
+            "max_timeline_error_count": max_timeline_error_count,
         },
     )

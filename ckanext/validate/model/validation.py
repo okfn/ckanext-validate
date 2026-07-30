@@ -249,7 +249,85 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
             "error_count": error_count,
             "valid_percentage": percentage(valid_count),
             "invalid_percentage": percentage(invalid_count),
+            "other_percentage": percentage(other_count),
         }
+
+    @classmethod
+    def get_statistics_timeline(cls, validations, period, end_date=None):
+        """Group validation activity into chart-friendly time buckets.
+
+        The one-month report is grouped by day. Longer reports are grouped
+        by calendar month. Empty periods are included so the chart keeps a
+        continuous timeline.
+        """
+        months = VALIDATION_PERIODS.get(period)
+        if months is None:
+            raise ValueError(
+                "Invalid period. Valid values are: {0}".format(
+                    ", ".join(VALIDATION_PERIODS)
+                )
+            )
+
+        end_date = end_date or datetime.now(timezone.utc)
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")
+
+        start_date = end_date - relativedelta(months=months)
+        buckets = {}
+
+        if period == "1_month":
+            current = start_date.date()
+            final = end_date.date()
+
+            while current <= final:
+                buckets[current] = {
+                    "key": current.isoformat(),
+                    "label": current.strftime("%d/%m"),
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                }
+                current += relativedelta(days=1)
+
+            def bucket_key(created):
+                return created.date()
+
+        else:
+            current = start_date.replace(day=1).date()
+            final = end_date.replace(day=1).date()
+
+            while current <= final:
+                buckets[current] = {
+                    "key": current.isoformat(),
+                    "label": current.strftime("%m/%Y"),
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                }
+                current += relativedelta(months=1)
+
+            def bucket_key(created):
+                return created.replace(day=1).date()
+
+        for validation in validations:
+            if not validation.created:
+                continue
+
+            bucket = buckets.get(bucket_key(validation.created))
+            if bucket is None:
+                continue
+
+            bucket["validation_count"] += 1
+            bucket["error_count"] += validation.error_count or 0
+
+            if validation.status == "success":
+                bucket["valid_count"] += 1
+            elif validation.status == "failure":
+                bucket["invalid_count"] += 1
+
+        return list(buckets.values())
 
     @classmethod
     def get_resource_status(cls, resource_id):
