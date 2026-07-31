@@ -57,14 +57,114 @@
   <div class="module module-narrow module-shallow">
     <div class="module-content">
       <h3>{{ _('About CSV Validation') }}</h3>
+
       <p>
-        {{ _('This tool checks your CSV file for common formatting errors and issues that may prevent it from being used effectively in data applications.') }}
+        {{ _(
+          'This tool checks your CSV file for structural errors, '
+          'missing values, and inconsistent data types or formats.'
+        ) }}
       </p>
+
       <ul>
-        <li>{{ _('Checks for missing headers or inconsistent column counts.') }}</li>
-        <li>{{ _('Validates data types and formats for each column.') }}</li>
-        <li>{{ _('Identifies duplicate rows or entries.') }}</li>
+        <li>
+          {{ _('Checks headers and the number of columns in each row.') }}
+        </li>
+        <li>
+          {{ _('Validates required values and inferred data types.') }}
+        </li>
+        <li>
+          {{ _('Detects invalid numeric values and date formats.') }}
+        </li>
       </ul>
+
+      <details class="validate-rules-details">
+        <summary>
+          {{ _('View validation rules applied') }}
+        </summary>
+
+        <div class="validate-rules-details__content">
+          <h4>{{ _('Headers') }}</h4>
+          <ul>
+            <li>{{ _('Column headers must not be empty.') }}</li>
+            <li>{{ _('Column names must be unique.') }}</li>
+          </ul>
+
+          <h4>{{ _('Rows and columns') }}</h4>
+          <ul>
+            <li>{{ _('Completely empty rows are reported as errors.') }}</li>
+            <li>
+              {{ _(
+                'Each row must contain the same number of cells '
+                'as the header row.'
+              ) }}
+            </li>
+            <li>
+              {{ _(
+                'Rows with missing or extra cells are reported as errors.'
+              ) }}
+            </li>
+          </ul>
+
+          <h4>{{ _('Required values') }}</h4>
+          <ul>
+            <li>{{ _('All detected columns are considered required.') }}</li>
+            <li>
+              {{ _(
+                'Empty cells and the values null, NULL, and None '
+                'are reported as missing values.'
+              ) }}
+            </li>
+          </ul>
+
+          <h4>{{ _('Data types') }}</h4>
+          <ul>
+            <li>
+              {{ _(
+                'The predominant values in each column are analyzed '
+                'to determine the expected data type.'
+              ) }}
+            </li>
+            <li>
+              {{ _(
+                'Values that do not match the expected type or format '
+                'are reported as errors.'
+              ) }}
+            </li>
+          </ul>
+
+          <h4>{{ _('Numeric values') }}</h4>
+          <ul>
+            <li>
+              {{ _(
+                'When at least 50%% of the values are numeric, '
+                'the column is validated as numeric.'
+              ) }}
+            </li>
+            <li>
+              {{ _(
+                'The column is validated as an integer when all detected '
+                'numbers are whole numbers, or as a decimal number otherwise.'
+              ) }}
+            </li>
+          </ul>
+
+          <h4>{{ _('Date values') }}</h4>
+          <ul>
+            <li>
+              {{ _(
+                'When at least 50%% of the values match a date format, '
+                'the complete column is validated using that format.'
+              ) }}
+            </li>
+            <li>
+              <strong>{{ _('Supported formats:') }}</strong>
+              <code>MM/DD/YYYY</code>,
+              <code>DD/MM/YYYY</code>,
+              <code>YYYY-MM-DD</code>.
+            </li>
+          </ul>
+        </div>
+      </details>
     </div>
   </div>
 {% endblock %}
