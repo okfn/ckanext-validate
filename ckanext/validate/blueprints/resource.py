@@ -109,11 +109,30 @@ def validate(package_id, resource_id):
     )
 
 
-@validate_test_file_blueprint.route("/ckan-admin/testfile", methods=["GET", "POST"])
+@validate_test_file_blueprint.route("/testfile", methods=["GET", "POST"])
 def validate_test_file_view():
     """View to validate a test CSV file uploaded manually."""
-    if not getattr(toolkit.current_user, "sysadmin", False):
-        base.abort(403, toolkit._("Need to be system administrator to administer"))
+    current_user = toolkit.current_user
+
+    context = {
+        "user": getattr(current_user, "name", None),
+        "auth_user_obj": current_user,
+    }
+
+    try:
+        toolkit.check_access(
+            "validate_test_file",
+            context,
+            {},
+        )
+    except toolkit.NotAuthorized:
+        base.abort(
+            403,
+            toolkit._(
+                "You must be an editor or administrator "
+                "to validate a file."
+            ),
+        )
 
     errors = []
     error_groups = []

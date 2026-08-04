@@ -258,3 +258,28 @@
     align-items: flex-start;
   }
 }
+
+.validate-rules-details {
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.validate-rules-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.validate-rules-details[open] summary {
+  margin-bottom: 12px;
+}
+
+.validate-rules-details__content h4 {
+  margin: 14px 0 5px;
+  font-size: 14px;
+}
+
+.validate-rules-details__content ul {
+  margin-bottom: 10px;
+  padding-left: 20px;
+}
