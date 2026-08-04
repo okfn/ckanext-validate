@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-validate 0.1.0\n"
+"Project-Id-Version: ckanext-validate 0.4.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-28 13:41+0000\n"
+"POT-Creation-Date: 2026-08-04 14:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,7 @@ msgstr ""
 "Generated-By: Babel 2.15.0\n"
 
 #: ckanext/validate/helpers.py:31 ckanext/validate/helpers.py:35
+#: ckanext/validate/helpers.py:327
 msgid "Structural validation error"
 msgstr ""
 
@@ -26,7 +27,7 @@ msgstr ""
 msgid "The validator could not extract row-level errors from the report."
 msgstr ""
 
-#: ckanext/validate/helpers.py:61
+#: ckanext/validate/helpers.py:61 ckanext/validate/helpers.py:333
 msgid "Validation error"
 msgstr ""
 
@@ -34,27 +35,89 @@ msgstr ""
 msgid "Unknown validation error"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:32
+#: ckanext/validate/helpers.py:319 ckanext/validate/helpers.py:325
+msgid "Missing header"
+msgstr ""
+
+#: ckanext/validate/helpers.py:320
+msgid "Duplicate header"
+msgstr ""
+
+#: ckanext/validate/helpers.py:321
+msgid "Empty row"
+msgstr ""
+
+#: ckanext/validate/helpers.py:322
+msgid "Type mismatch"
+msgstr ""
+
+#: ckanext/validate/helpers.py:323
+msgid "Missing value"
+msgstr ""
+
+#: ckanext/validate/helpers.py:324
+msgid "Extra cell"
+msgstr ""
+
+#: ckanext/validate/helpers.py:326
+msgid "Blank label"
+msgstr ""
+
+#: ckanext/validate/helpers.py:340 ckanext/validate/helpers.py:362
+msgid ""
+"A column in the header row has no name. Every column should have a unique, "
+"non-empty header."
+msgstr ""
+
+#: ckanext/validate/helpers.py:344
+msgid "Two or more columns share the same name. Column names must be unique."
+msgstr ""
+
+#: ckanext/validate/helpers.py:348
+msgid "This row has no data. Rows should contain at least one cell with data."
+msgstr ""
+
+#: ckanext/validate/helpers.py:352
+msgid "A cell value does not match the expected data type or format for the column."
+msgstr ""
+
+#: ckanext/validate/helpers.py:356
+msgid "This cell is missing data."
+msgstr ""
+
+#: ckanext/validate/helpers.py:359
+msgid "This row has more values than the header row."
+msgstr ""
+
+#: ckanext/validate/helpers.py:366
+msgid "A label in the header row is missing a value. Labels must not be blank."
+msgstr ""
+
+#: ckanext/validate/helpers.py:370
+msgid "The validator could not extract row-level errors from the validation report."
+msgstr ""
+
+#: ckanext/validate/actions/action.py:69
 msgid "Only CSV resources can be validated."
 msgstr ""
 
-#: ckanext/validate/actions/action.py:61
+#: ckanext/validate/actions/action.py:91
 msgid "System error: {0}"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:104
+#: ckanext/validate/actions/action.py:134
 msgid "No validation found for resource {0}"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:133
+#: ckanext/validate/actions/action.py:163
 msgid "Invalid job status. Valid values are: {0}"
 msgstr ""
 
-#: ckanext/validate/actions/action.py:141
+#: ckanext/validate/actions/action.py:171
 msgid "Must be an integer."
 msgstr ""
 
-#: ckanext/validate/actions/action.py:145
+#: ckanext/validate/actions/action.py:175
 msgid "Must be a positive integer."
 msgstr ""
 
@@ -66,12 +129,20 @@ msgstr ""
 msgid "Not authorized to view this resource"
 msgstr ""
 
-#: ckanext/validate/blueprints/admin.py:21
-#: ckanext/validate/blueprints/resource.py:116
+#: ckanext/validate/auth/validation.py:43
+msgid "You must be logged in to validate a file."
+msgstr ""
+
+#: ckanext/validate/auth/validation.py:67
+#: ckanext/validate/blueprints/resource.py:131
+msgid "You must be an editor or administrator to validate a file."
+msgstr ""
+
+#: ckanext/validate/blueprints/admin.py:25
 msgid "Need to be system administrator to administer"
 msgstr ""
 
-#: ckanext/validate/blueprints/admin.py:28
+#: ckanext/validate/blueprints/admin.py:32
 msgid "Invalid job status: {0}"
 msgstr ""
 
@@ -80,6 +151,7 @@ msgid "Package not found"
 msgstr ""
 
 #: ckanext/validate/blueprints/resource.py:42
+#: ckanext/validate/blueprints/resource.py:206
 msgid "Resource not found"
 msgstr ""
 
@@ -95,24 +167,19 @@ msgstr ""
 msgid "Validation completed."
 msgstr ""
 
-#: ckanext/validate/blueprints/resource.py:128
+#: ckanext/validate/blueprints/resource.py:147
 msgid "Please select a CSV file to validate."
 msgstr ""
 
-#: ckanext/validate/blueprints/resource.py:136
+#: ckanext/validate/blueprints/resource.py:155
 msgid "Only CSV files are supported."
 msgstr ""
 
-#: ckanext/validate/blueprints/resource.py:158
+#: ckanext/validate/blueprints/resource.py:175
 msgid "System error during validation: {0}"
 msgstr ""
 
 #: ckanext/validate/templates/admin/base.html:5
-#: ckanext/validate/templates/validate/test_file.html:3
-msgid "Validate File"
-msgstr ""
-
-#: ckanext/validate/templates/admin/base.html:6
 #: ckanext/validate/templates/admin/validation_jobs.html:3
 #: ckanext/validate/templates/admin/validation_jobs.html:11
 msgid "Validation Jobs"
@@ -170,52 +237,8 @@ msgid "No validation jobs found from the selected status."
 msgstr ""
 
 #: ckanext/validate/templates/package/resource_read.html:11
-#: ckanext/validate/templates/validate/test_file.html:48
+#: ckanext/validate/templates/validate/test_file.html:49
 msgid "Validate"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:14
-#: ckanext/validate/templates/package/resource_validate.html:31
-#: ckanext/validate/templates/package/snippets/resource_item.html:8
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:5
-#: ckanext/validate/templates/validate/test_file.html:16
-msgid "Valid"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:16
-#: ckanext/validate/templates/package/resource_validate.html:33
-#: ckanext/validate/templates/package/snippets/resource_item.html:10
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:7
-#: ckanext/validate/templates/validate/test_file.html:18
-msgid "Invalid"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:18
-#: ckanext/validate/templates/package/resource_validate.html:35
-#: ckanext/validate/templates/package/snippets/resource_item.html:12
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:9
-msgid "Error"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:22
-#: ckanext/validate/templates/package/resource_validate.html:27
-#: ckanext/validate/templates/package/snippets/resource_item.html:16
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:13
-msgid "Pending"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:27
-#: ckanext/validate/templates/package/resource_validate.html:29
-#: ckanext/validate/templates/package/snippets/resource_item.html:21
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:18
-msgid "Running"
-msgstr ""
-
-#: ckanext/validate/templates/package/resource_read.html:30
-#: ckanext/validate/templates/package/resource_validate.html:37
-#: ckanext/validate/templates/package/snippets/resource_item.html:24
-#: ckanext/validate/templates/scheming/display_snippets/validation_status.html:21
-msgid "Not validated"
 msgstr ""
 
 #: ckanext/validate/templates/package/resource_validate.html:7
@@ -227,32 +250,185 @@ msgstr ""
 msgid "Current Status"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:43
+#: ckanext/validate/templates/package/resource_validate.html:30
 msgid "Last validation:"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:49
+#: ckanext/validate/templates/package/resource_validate.html:36
 msgid "Validation is waiting in the queue."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:51
+#: ckanext/validate/templates/package/resource_validate.html:38
 msgid "Validation is running in the background."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:53
+#: ckanext/validate/templates/package/resource_validate.html:40
 msgid "No errors found for this resource."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:56
+#: ckanext/validate/templates/package/resource_validate.html:43
 msgid "errors detected"
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:59
+#: ckanext/validate/templates/package/resource_validate.html:46
 msgid "An error occurred while running the validator."
 msgstr ""
 
-#: ckanext/validate/templates/package/resource_validate.html:74
+#: ckanext/validate/templates/package/resource_validate.html:62
 msgid "Run Validation"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:72
+#: ckanext/validate/templates/validate/test_file.html:59
+msgid "About CSV Validation"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:75
+#: ckanext/validate/templates/validate/test_file.html:62
+msgid ""
+"This tool checks your CSV file for structural errors, missing values, and "
+"inconsistent data types or formats."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:83
+#: ckanext/validate/templates/validate/test_file.html:70
+msgid "Checks headers and the number of columns in each row."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:86
+#: ckanext/validate/templates/validate/test_file.html:73
+msgid "Validates required values and inferred data types."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:89
+#: ckanext/validate/templates/validate/test_file.html:76
+msgid "Detects invalid numeric values and date formats."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:95
+#: ckanext/validate/templates/validate/test_file.html:82
+msgid "View validation rules applied"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:99
+#: ckanext/validate/templates/validate/test_file.html:86
+msgid "Headers"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:101
+#: ckanext/validate/templates/validate/test_file.html:88
+msgid "Column headers must not be empty."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:102
+#: ckanext/validate/templates/validate/test_file.html:89
+msgid "Column names must be unique."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:105
+#: ckanext/validate/templates/validate/test_file.html:92
+msgid "Rows and columns"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:107
+#: ckanext/validate/templates/validate/test_file.html:94
+msgid "Completely empty rows are reported as errors."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:109
+#: ckanext/validate/templates/validate/test_file.html:96
+msgid "Each row must contain the same number of cells as the header row."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:115
+#: ckanext/validate/templates/validate/test_file.html:102
+msgid "Rows with missing or extra cells are reported as errors."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:121
+#: ckanext/validate/templates/validate/test_file.html:108
+msgid "Required values"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:123
+#: ckanext/validate/templates/validate/test_file.html:110
+msgid "All detected columns are considered required."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:125
+#: ckanext/validate/templates/validate/test_file.html:112
+msgid ""
+"Empty cells and the values null, NULL, and None are reported as missing "
+"values."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:132
+#: ckanext/validate/templates/validate/test_file.html:119
+msgid "Data types"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:135
+#: ckanext/validate/templates/validate/test_file.html:122
+msgid ""
+"The predominant values in each column are analyzed to determine the expected "
+"data type."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:141
+#: ckanext/validate/templates/validate/test_file.html:128
+msgid "Values that do not match the expected type or format are reported as errors."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:148
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:17
+#: ckanext/validate/templates/validate/test_file.html:135
+msgid "Numeric values"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:151
+#: ckanext/validate/templates/validate/test_file.html:138
+#, python-format
+msgid ""
+"When at least 50%% of the values are numeric, the column is validated as "
+"numeric."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:157
+#: ckanext/validate/templates/validate/test_file.html:144
+msgid ""
+"The column is validated as an integer when all detected numbers are whole "
+"numbers, or as a decimal number otherwise."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:164
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:29
+#: ckanext/validate/templates/validate/test_file.html:151
+msgid "Date values"
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:167
+#: ckanext/validate/templates/validate/test_file.html:154
+#, python-format
+msgid ""
+"When at least 50%% of the values match a date format, the complete column is "
+"validated using that format."
+msgstr ""
+
+#: ckanext/validate/templates/package/resource_validate.html:173
+#: ckanext/validate/templates/validate/test_file.html:160
+msgid "Supported formats:"
+msgstr ""
+
+#: ckanext/validate/templates/package/snippets/test_file_link.html:7
+msgid "Validate CSV file"
+msgstr ""
+
+#: ckanext/validate/templates/package/snippets/test_file_link.html:11
+msgid "Validate CSV"
+msgstr ""
+
+#: ckanext/validate/templates/validate/test_file.html:3
+msgid "Validate File"
 msgstr ""
 
 #: ckanext/validate/templates/validate/test_file.html:6
@@ -265,6 +441,16 @@ msgid ""
 "linked to any dataset."
 msgstr ""
 
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:18
+#: ckanext/validate/templates/validate/test_file.html:16
+msgid "Valid"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:19
+#: ckanext/validate/templates/validate/test_file.html:18
+msgid "Invalid"
+msgstr ""
+
 #: ckanext/validate/templates/validate/test_file.html:22
 msgid "No errors found in"
 msgstr ""
@@ -273,31 +459,76 @@ msgstr ""
 msgid "error(s) found in"
 msgstr ""
 
-#: ckanext/validate/templates/validate/test_file.html:39
+#: ckanext/validate/templates/validate/test_file.html:40
 msgid "Select a CSV File for Validation"
 msgstr ""
 
-#: ckanext/validate/templates/validate/test_file.html:43
+#: ckanext/validate/templates/validate/test_file.html:44
 msgid "CSV File"
 msgstr ""
 
-#: ckanext/validate/templates/validate/snippets/error_groups.html:45
+#: ckanext/validate/templates/validate/snippets/error_groups.html:58
 msgid "Occurrences"
 msgstr ""
 
-#: ckanext/validate/templates/validate/snippets/error_groups.html:50
+#: ckanext/validate/templates/validate/snippets/error_groups.html:63
 msgid "Row"
 msgstr ""
 
-#: ckanext/validate/templates/validate/snippets/error_groups.html:52
+#: ckanext/validate/templates/validate/snippets/error_groups.html:65
 msgid "Field"
 msgstr ""
 
-#: ckanext/validate/templates/validate/snippets/error_groups.html:54
+#: ckanext/validate/templates/validate/snippets/error_groups.html:67
 msgid "Column"
 msgstr ""
 
-#: ckanext/validate/templates/validate/snippets/error_groups.html:66
+#: ckanext/validate/templates/validate/snippets/error_groups.html:79
 msgid "Showing only the first {0} rows for this error type."
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:20
+msgid "Error"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:21
+msgid "Pending"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:22
+msgid "Running"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:23
+#: ckanext/validate/templates/validate/snippets/validation_badge.html:37
+msgid "Not validated"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:4
+msgid "Validation rules applied"
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:9
+msgid ""
+"The validator analyzes the predominant values in each column to determine the"
+" expected data type."
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:20
+msgid ""
+"When most values in a column are numeric, the column is validated as an "
+"integer or decimal number. Values containing text or an incompatible numeric "
+"format are reported as errors."
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:32
+msgid ""
+"When most values in a column are dates, the most commonly used date format is"
+" applied to the complete column. Values using a different or invalid format "
+"are reported as errors."
+msgstr ""
+
+#: ckanext/validate/templates/validate/snippets/validation_rules.html:40
+msgid "Supported date formats:"
 msgstr ""
 
