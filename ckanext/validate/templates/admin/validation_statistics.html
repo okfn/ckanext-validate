@@ -1,0 +1,214 @@
+{% extends "admin/base.html" %}
+
+{% block subtitle %}{{ _('Validation Statistics') }}{% endblock %}
+
+{% block primary_content_inner %}
+  <h1>{{ _('Validation Statistics') }}</h1>
+
+  <p class="text-muted">
+    {{ _('Summary of CSV validation results for the selected period.') }}
+  </p>
+
+  <form method="get" class="form-inline" style="margin-bottom: 20px;">
+    <div class="form-group">
+      <label for="period">{{ _('Period') }}</label>
+      <select name="period" id="period" class="form-control">
+        {% for period, label in periods.items() %}
+          <option value="{{ period }}"{% if selected_period == period %} selected{% endif %}>
+            {{ _(label) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-filter"></i>
+      {{ _('Apply') }}
+    </button>
+  </form>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.validation_count }}</strong>
+        <div>{{ _('Validations') }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.resource_count }}</strong>
+        <div>{{ _('Resources') }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.valid_count }}</strong>
+        <div>{{ _('Valid') }} ({{ summary.valid_percentage }}%)</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="well text-center">
+        <strong>{{ summary.invalid_count }}</strong>
+        <div>{{ _('Invalid') }} ({{ summary.invalid_percentage }}%)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>{{ summary.error_count }}</strong>
+    {{ _('errors detected during the selected period.') }}
+  </div>
+
+  <section class="validation-chart-card">
+    <h2>{{ _('Validation results') }}</h2>
+
+    {% if summary.validation_count %}
+      <div
+        class="validation-status-chart"
+        role="img"
+        aria-label="{{ _('Distribution of valid and invalid validations') }}"
+      >
+        <div
+          class="validation-status-chart__valid"
+          data-width-pct="{{ summary.valid_percentage }}"
+          title="{{ _('Valid') }}: {{ summary.valid_count }}"
+        ></div>
+        <div
+          class="validation-status-chart__invalid"
+          data-width-pct="{{ summary.invalid_percentage }}"
+          title="{{ _('Invalid') }}: {{ summary.invalid_count }}"
+        ></div>
+        {% if summary.other_count %}
+          <div
+            class="validation-status-chart__other"
+            data-width-pct="{{ summary.other_percentage }}"
+            title="{{ _('Other') }}: {{ summary.other_count }}"
+          ></div>
+        {% endif %}
+      </div>
+
+      <ul class="validation-chart-legend">
+        <li>
+          <span class="validation-chart-legend__marker validation-chart-legend__marker--valid"></span>
+          {{ _('Valid') }}: {{ summary.valid_count }}
+        </li>
+        <li>
+          <span class="validation-chart-legend__marker validation-chart-legend__marker--invalid"></span>
+          {{ _('Invalid') }}: {{ summary.invalid_count }}
+        </li>
+        {% if summary.other_count %}
+          <li>
+            <span class="validation-chart-legend__marker validation-chart-legend__marker--other"></span>
+            {{ _('Other') }}: {{ summary.other_count }}
+          </li>
+        {% endif %}
+      </ul>
+    {% else %}
+      <p class="text-muted">{{ _('No validations were found for the selected period.') }}</p>
+    {% endif %}
+  </section>
+
+  <section class="validation-chart-card">
+    <h2>{{ _('Error evolution') }}</h2>
+
+    {% if timeline %}
+      <div class="validation-timeline">
+        {% for item in timeline %}
+          {% set bar_height = item.error_count * 100 / max_timeline_error_count %}
+          <div
+            class="validation-timeline__item"
+            title="{{ item.label }} · {{ item.error_count }} {{ _('errors') }} · {{ item.validation_count }} {{ _('validations') }}"
+          >
+            <span class="validation-timeline__value">{{ item.error_count }}</span>
+            <div
+              class="validation-timeline__bar"
+              data-height-pct="{{ bar_height }}"
+            ></div>
+            <span class="validation-timeline__label">{{ item.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">{{ _('No validations were found for the selected period.') }}</p>
+    {% endif %}
+  </section>
+
+  <section class="validation-chart-card">
+    <h2>{{ _('Errors by type') }}</h2>
+
+    {% if errors_by_type %}
+      <ul class="validation-horizontal-chart">
+        {% for error in errors_by_type %}
+          {% set bar_width = error.count * 100 / max_error_type_count %}
+          <li class="validation-horizontal-chart__item">
+            <span>{{ h.validation_error_title(error.type, error.type) }}</span>
+            <div class="validation-horizontal-chart__track">
+              <div
+                class="validation-horizontal-chart__bar"
+                data-width-pct="{{ bar_width }}"
+              ></div>
+            </div>
+            <strong>{{ error.count }}</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="alert alert-info">
+        {{ _('No validation errors were found for the selected period.') }}
+      </div>
+    {% endif %}
+  </section>
+
+  {# Tabla resumen de recursos #}
+  <section class="validation-chart-card">
+    <h2>{{ _('Resources summary') }}</h2>
+
+    {% if resources %}
+      <table class="table table-condensed table-bordered">
+        <thead>
+          <tr>
+            <th>{{ _('Resource') }}</th>
+            <th>{{ _('Validations') }}</th>
+            <th>{{ _('Valid') }}</th>
+            <th>{{ _('Invalid') }}</th>
+            <th>{{ _('Errors') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for resource in resources %}
+            <tr>
+              <td>
+                {% if resource.resource_url %}
+                  <a href="{{ resource.resource_url }}">
+                    {{ resource.resource_name }}
+                  </a>
+                {% else %}
+                  <code>{{ resource.resource_name }}</code>
+                {% endif %}
+              </td>
+              <td>{{ resource.validation_count }}</td>
+              <td>{{ resource.valid_count }}</td>
+              <td>{{ resource.invalid_count }}</td>
+              <td>{{ resource.error_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="alert alert-info">
+        {{ _('No validations were found for the selected period.') }}
+      </div>
+    {% endif %}
+  </section>
+
+  <script>
+    (function () {
+      document.querySelectorAll('[data-width-pct]').forEach(function (el) {
+        el.style.width = parseFloat(el.dataset.widthPct) + '%';
+      });
+      document.querySelectorAll('[data-height-pct]').forEach(function (el) {
+        el.style.height = parseFloat(el.dataset.heightPct) + '%';
+      });
+    })();
+  </script>
+{% endblock %}

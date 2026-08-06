@@ -1,11 +1,20 @@
+from collections import Counter
 from datetime import datetime, timezone
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, DateTime, Index, Integer, UnicodeText
 
 from ckan.model.types import JsonDictType
 from ckan.model.base import ActiveRecordMixin
 from ckan.model import Session
 from ckan.plugins import toolkit
+
+
+VALIDATION_PERIODS = {
+    "1_month": 1,
+    "6_months": 6,
+    "1_year": 12,
+}
 
 
 class Validation(toolkit.BaseModel, ActiveRecordMixin):
@@ -49,6 +58,276 @@ class Validation(toolkit.BaseModel, ActiveRecordMixin):
             .order_by(cls.created.desc())
             .first()
         )
+
+    @classmethod
+    def get_by_date_range(cls, start_date, end_date):
+        """Return validations created within a date range.
+
+        ``start_date`` is inclusive and ``end_date`` is exclusive. This avoids
+        returning the same validation in two consecutive reporting periods.
+        """
+        if (
+            not isinstance(start_date, datetime)
+            or not isinstance(end_date, datetime)
+        ):
+            raise ValueError("start_date and end_date must be datetime objects")
+
+        if start_date >= end_date:
+            raise ValueError("start_date must be earlier than end_date")
+
+        return (
+            Session.query(cls)
+            .filter(
+                cls.created >= start_date,
+                cls.created < end_date,
+            )
+            .order_by(cls.created.desc())
+            .all()
+        )
+
+    @classmethod
+    def get_by_period(cls, period, end_date=None):
+        """Return validations from one of the supported reporting periods."""
+        months = VALIDATION_PERIODS.get(period)
+        if months is None:
+            raise ValueError(
+                "Invalid period. Valid values are: {0}".format(
+                    ", ".join(VALIDATION_PERIODS)
+                )
+            )
+
+        end_date = end_date or datetime.now(timezone.utc)
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")
+
+        start_date = end_date - relativedelta(months=months)
+        return cls.get_by_date_range(start_date, end_date)
+
+    @staticmethod
+    def _get_error_type(error):
+        """Return a stable grouping key for a stored validation error."""
+        if not isinstance(error, dict):
+            return "unknown"
+
+        return (
+            error.get("type")
+            or error.get("title")
+            or error.get("message")
+            or "unknown"
+        )
+
+    @classmethod
+    def group_errors_by_type(cls, validations):
+        """Count stored errors by error type for the given validations."""
+        error_counts = Counter()
+
+        for validation in validations:
+            errors = (
+                validation.errors
+                if isinstance(validation.errors, list)
+                else []
+            )
+
+            for error in errors:
+                error_counts[cls._get_error_type(error)] += 1
+
+            missing_details = max(
+                (validation.error_count or 0) - len(errors),
+                0,
+            )
+            if missing_details:
+                error_counts["unknown"] += missing_details
+
+        return [
+            {"type": error_type, "count": count}
+            for error_type, count in sorted(
+                error_counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )
+        ]
+
+    @classmethod
+    def group_errors_by_resource(cls, validations):
+        """Summarize validations and errors for each resource."""
+        resources = {}
+
+        for validation in validations:
+            summary = resources.setdefault(
+                validation.resource_id,
+                {
+                    "resource_id": validation.resource_id,
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                    "errors_by_type": Counter(),
+                },
+            )
+
+            summary["validation_count"] += 1
+            summary["error_count"] += validation.error_count or 0
+
+            if validation.status == "success":
+                summary["valid_count"] += 1
+            elif validation.status == "failure":
+                summary["invalid_count"] += 1
+
+            errors = (
+                validation.errors
+                if isinstance(validation.errors, list)
+                else []
+            )
+
+            for error in errors:
+                error_type = cls._get_error_type(error)
+                summary["errors_by_type"][error_type] += 1
+
+            missing_details = max(
+                (validation.error_count or 0) - len(errors),
+                0,
+            )
+            if missing_details:
+                summary["errors_by_type"]["unknown"] += missing_details
+
+        result = []
+
+        for summary in resources.values():
+            summary["errors_by_type"] = [
+                {"type": error_type, "count": count}
+                for error_type, count in sorted(
+                    summary["errors_by_type"].items(),
+                    key=lambda item: (-item[1], item[0]),
+                )
+            ]
+            result.append(summary)
+
+        return sorted(
+            result,
+            key=lambda item: (
+                -item["error_count"],
+                item["resource_id"],
+            ),
+        )
+
+    @classmethod
+    def get_statistics_summary(cls, validations):
+        """Return the main statistical indicators for validations.
+
+        The counts represent validation executions. ``resource_count`` reports
+        how many different resources were included in the selected period.
+        """
+        validations = list(validations)
+        total_validations = len(validations)
+        valid_count = sum(
+            validation.status == "success"
+            for validation in validations
+        )
+        invalid_count = sum(
+            validation.status == "failure"
+            for validation in validations
+        )
+        other_count = total_validations - valid_count - invalid_count
+        error_count = sum(
+            validation.error_count or 0
+            for validation in validations
+        )
+        resource_count = len(
+            {validation.resource_id for validation in validations}
+        )
+
+        def percentage(count):
+            if not total_validations:
+                return 0.0
+            return round((count / total_validations) * 100, 2)
+
+        return {
+            "validation_count": total_validations,
+            "resource_count": resource_count,
+            "valid_count": valid_count,
+            "invalid_count": invalid_count,
+            "other_count": other_count,
+            "error_count": error_count,
+            "valid_percentage": percentage(valid_count),
+            "invalid_percentage": percentage(invalid_count),
+            "other_percentage": percentage(other_count),
+        }
+
+    @classmethod
+    def get_statistics_timeline(cls, validations, period, end_date=None):
+        """Group validation activity into chart-friendly time buckets.
+
+        The one-month report is grouped by day. Longer reports are grouped
+        by calendar month. Empty periods are included so the chart keeps a
+        continuous timeline.
+        """
+        months = VALIDATION_PERIODS.get(period)
+        if months is None:
+            raise ValueError(
+                "Invalid period. Valid values are: {0}".format(
+                    ", ".join(VALIDATION_PERIODS)
+                )
+            )
+
+        end_date = end_date or datetime.now(timezone.utc)
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")
+
+        start_date = end_date - relativedelta(months=months)
+        buckets = {}
+
+        if period == "1_month":
+            current = start_date.date()
+            final = end_date.date()
+
+            while current <= final:
+                buckets[current] = {
+                    "key": current.isoformat(),
+                    "label": current.strftime("%d/%m"),
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                }
+                current += relativedelta(days=1)
+
+            def bucket_key(created):
+                return created.date()
+
+        else:
+            current = start_date.replace(day=1).date()
+            final = end_date.replace(day=1).date()
+
+            while current <= final:
+                buckets[current] = {
+                    "key": current.isoformat(),
+                    "label": current.strftime("%m/%Y"),
+                    "validation_count": 0,
+                    "valid_count": 0,
+                    "invalid_count": 0,
+                    "error_count": 0,
+                }
+                current += relativedelta(months=1)
+
+            def bucket_key(created):
+                return created.replace(day=1).date()
+
+        for validation in validations:
+            if not validation.created:
+                continue
+
+            bucket = buckets.get(bucket_key(validation.created))
+            if bucket is None:
+                continue
+
+            bucket["validation_count"] += 1
+            bucket["error_count"] += validation.error_count or 0
+
+            if validation.status == "success":
+                bucket["valid_count"] += 1
+            elif validation.status == "failure":
+                bucket["invalid_count"] += 1
+
+        return list(buckets.values())
 
     @classmethod
     def get_resource_status(cls, resource_id):
