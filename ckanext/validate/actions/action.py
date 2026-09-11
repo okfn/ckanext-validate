@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 
 from frictionless import system, Resource
-from ckan.lib import files, uploader
+from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
@@ -28,6 +28,8 @@ def get_uploaded_resource_source(resource):
     storage = getattr(upload, "storage", None)
 
     if storage is not None:
+        from ckan.lib import files
+
         content = storage.content(files.FileData(location))
         return BytesIO(content)
 
