@@ -50,8 +50,7 @@ class DummyResource:
 
 
 @pytest.fixture(autouse=True)
-def validate_setup(with_plugins, reset_db, migrate_db_for):
-    reset_db()
+def validate_setup(with_plugins, clean_db, migrate_db_for):
     migrate_db_for("validate")
 
 
