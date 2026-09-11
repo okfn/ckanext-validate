@@ -1,7 +1,8 @@
 import logging
+from io import BytesIO
 
 from frictionless import system, Resource
-from ckan.lib import uploader
+from ckan.lib import files, uploader
 
 import ckan.plugins.toolkit as toolkit
 
@@ -13,6 +14,24 @@ from ckanext.validate.detector import ValidateDetector
 
 
 log = logging.getLogger(__name__)
+
+
+def get_uploaded_resource_source(resource):
+    """Return a Frictionless-compatible source for an uploaded resource.
+
+    CKAN 2.12 can store resource uploads through file-keeper instead of the
+    local filesystem. Keep supporting the legacy uploader while reading files
+    from the configured storage when the new backend is active.
+    """
+    upload = uploader.get_resource_uploader(resource)
+    location = upload.get_path(resource["id"])
+    storage = getattr(upload, "storage", None)
+
+    if storage is not None:
+        content = storage.content(files.FileData(location))
+        return BytesIO(content)
+
+    return "file://" + str(location)
 
 
 def get_validation_report(source, format):
@@ -72,9 +91,7 @@ def resource_validate(context, data_dict):
     is_uploaded = resource.get("url_type") == "upload"
     fmt_lower = h.normalize_format(resource)
     if is_uploaded:
-        # TODO: Refactor to new file API when migrating to CKAN 2.12.
-        upload = uploader.get_resource_uploader(resource)
-        source = "file://" + upload.get_path(resource["id"])
+        source = get_uploaded_resource_source(resource)
     else:
         source = resource["url"]
 

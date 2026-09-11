@@ -1,4 +1,4 @@
-name: Tests
+name: Tests (CKAN 2.11)
 on: [push, pull_request]
 jobs:
   test:
@@ -20,7 +20,7 @@ jobs:
           POSTGRES_DB: postgres
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
-          image: redis:3
+          image: redis:7-alpine
 
     env:
       CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
@@ -46,4 +46,3 @@ jobs:
         ckan -c test.ini db init
     - name: Run tests
       run: pytest --ckan-ini=test.ini --cov=ckanext.validate --disable-warnings ckanext/validate
-

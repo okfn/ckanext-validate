@@ -67,6 +67,24 @@ def test_resource_validate_uploaded_file_success(monkeypatch):
     assert record.errors == []
 
 
+def test_uploaded_resource_source_uses_ckan_212_storage(monkeypatch):
+    content = b"name,value\nexample,1\n"
+    storage = SimpleNamespace(content=lambda file_data: content)
+    upload = SimpleNamespace(
+        storage=storage,
+        get_path=lambda resource_id: "abc/def/resource.csv",
+    )
+    monkeypatch.setattr(
+        validate_action.uploader,
+        "get_resource_uploader",
+        lambda resource: upload,
+    )
+
+    source = validate_action.get_uploaded_resource_source({"id": "resource-id"})
+
+    assert source.read() == content
+
+
 def test_resource_validate_collects_task_errors(monkeypatch):
     resource = factories.Resource(
         format="CSV", url_type="", url="https://example.com/bad.csv"
