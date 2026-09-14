@@ -1,5 +1,4 @@
 import logging
-from io import BytesIO
 
 from frictionless import system, Resource
 from ckan.lib import uploader
