@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 
 from frictionless import system, Resource
-from ckan.lib import files, uploader
+from ckan.lib import uploader
 
 import ckan.plugins.toolkit as toolkit
 
@@ -11,6 +11,11 @@ from ckanext.validate.model import Validation
 from ckanext.validate.model.validation_jobs import JobStatus, ValidationJob
 from ckanext.validate.resource_hooks import is_csv_resource
 from ckanext.validate.detector import ValidateDetector
+
+
+if toolkit.check_ckan_version(max_version="2.12"):
+    # files has been introduced in CKAN 2.12
+    from ckan.lib import files
 
 
 log = logging.getLogger(__name__)
@@ -27,11 +32,11 @@ def get_uploaded_resource_source(resource):
     location = upload.get_path(resource["id"])
     storage = getattr(upload, "storage", None)
 
-    if storage is not None:
-        content = storage.content(files.FileData(location))
-        return BytesIO(content)
+    if toolkit.check_ckan_version(min_version="2.11"):
+        return "file://" + str(location)
 
-    return "file://" + str(location)
+    if storage is not None:
+        return files.Location(location)
 
 
 def get_validation_report(source, format):
