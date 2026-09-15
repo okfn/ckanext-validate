@@ -12,8 +12,9 @@ from ckanext.validate.resource_hooks import is_csv_resource
 from ckanext.validate.detector import ValidateDetector
 
 
-if toolkit.check_ckan_version(max_version="2.12"):
-    # files has been introduced in CKAN 2.12
+if toolkit.check_ckan_version(min_version="2.12"):
+    # ckan.lib.files was introduced in CKAN 2.12. Import it conditionally so
+    # loading this plugin on CKAN 2.11 does not raise an ImportError.
     from ckan.lib import files
 
 
@@ -31,11 +32,10 @@ def get_uploaded_resource_source(resource):
     location = upload.get_path(resource["id"])
     storage = getattr(upload, "storage", None)
 
-    if toolkit.check_ckan_version(min_version="2.11"):
-        return "file://" + str(location)
-
-    if storage is not None:
+    if toolkit.check_ckan_version(min_version="2.12") and storage is not None:
         return files.Location(location)
+
+    return "file://" + str(location)
 
 
 def get_validation_report(source, format):
