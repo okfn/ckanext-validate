@@ -60,27 +60,22 @@ def validate(package_id, resource_id):
                 resource_id,
                 msg,
             )
-            toolkit.h.flash_error(msg)
-            return toolkit.redirect_to(
-                "resource.read",
-                id=package_id,
-                resource_id=resource_id,
-            )
+            errors = e.error_dict
         except toolkit.NotAuthorized:
             base.abort(403, toolkit._("Not authorized to validate this resource"))
-
-        record = Validation.get_latest(resource_id)
-        if record and record.status == "success":
-            toolkit.h.flash_notice(
-                toolkit._("Validation completed. No errors found.")
-            )
-        elif record and record.status == "failure":
-            msg = toolkit._("Validation completed. {} errors found.").format(
-                record.error_count
-            )
-            toolkit.h.flash_notice(msg)
         else:
-            toolkit.h.flash_notice(toolkit._("Validation completed."))
+            record = Validation.get_latest(resource_id)
+            if record and record.status == "success":
+                toolkit.h.flash_notice(
+                    toolkit._("Validation completed. No errors found.")
+                )
+            elif record and record.status == "failure":
+                msg = toolkit._("Validation completed. {} errors found.").format(
+                    record.error_count
+                )
+                toolkit.h.flash_notice(msg)
+            else:
+                toolkit.h.flash_notice(toolkit._("Validation completed."))
 
     record = Validation.get_latest(resource_id)
     validation_errors = record.errors if record else []

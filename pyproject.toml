@@ -1,6 +1,6 @@
 [project]
 name = "ckanext-validate"
-version = "0.5.2"
+version = "0.6.0"
 description = "A Simple CKAN extension to validate tabular data."
 readme = "README.md"
 authors = [
@@ -13,10 +13,11 @@ classifiers = [
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 keywords = [ "CKAN", "validation", "dataquality", "frictionless", ]
-dependencies = []
+dependencies = ["frictionless==5.19.0"]
 
 [project.urls]
 Homepage = "https://github.com/okfn/ckanext-validate"

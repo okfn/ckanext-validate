@@ -129,7 +129,6 @@ def test_group_validation_errors_merges_preview_rows_with_multiple_column_errors
     assert preview_rows[1]["highlight_columns"] == [3]
 
 
-
 @pytest.mark.parametrize(
     ("error_type", "expected"),
     [
@@ -139,13 +138,11 @@ def test_group_validation_errors_merges_preview_rows_with_multiple_column_errors
         ("type-error", "Type mismatch"),
     ],
 )
-
-
 def test_validation_error_title(
         monkeypatch,
         error_type,
         expected,
-    ):
+        ):
     monkeypatch.setattr(
         helpers.toolkit,
         "_",

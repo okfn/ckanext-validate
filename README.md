@@ -4,7 +4,8 @@
 
 A simple CKAN extension to validate tabular data powered by [Frictionless](https://framework.frictionlessdata.io/).
 
-**Important:** This extension does not support any kind of Cloud Storage and it is designed for `docker-compose` setups where workers have access to the files directly. Multistorage support will be implemented once the new File API of CKAN 2.12 is released.
+Uploaded resources are read through CKAN's configured storage. CKAN 2.12
+file-keeper storage backends and the legacy local FileStore are both supported.
 
 ![A screenshot of the main validation report screen showing errors by category](./ckanext-validate.png)
 
@@ -176,6 +177,7 @@ Compatibility with core CKAN versions:
 | ------------ | ----------- |
 | 2.10         | not tested  |
 | 2.11         | yes         |
+| 2.12         | yes         |
 
 ## Installation
 
@@ -422,7 +424,7 @@ job queue, so a worker must be running for queued jobs to be processed:
 ckan -c /etc/ckan/default/ckan.ini jobs worker
 ```
 
-See the CKAN docs: https://docs.ckan.org/en/2.11/maintaining/cli.html
+See the CKAN docs: https://docs.ckan.org/en/2.12/maintaining/cli.html
 
 When a CSV resource's file is replaced, a new job is enqueued (unless one is
 already queued for that resource). When a resource is deleted, its background

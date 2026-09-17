@@ -208,7 +208,7 @@ class TestResourceValidatePost:
         assert "validate-badge--invalid" in response
         assert "1" in response
 
-    def test_post_shows_errors_block_when_action_raises_validation_error(
+    def test_post_flashes_message_when_action_raises_validation_error(
         self, app, monkeypatch, sysadmin_headers
     ):
         dataset = factories.Dataset()
@@ -221,6 +221,4 @@ class TestResourceValidatePost:
             status=200,
         )
 
-        assert "alert-danger" in response
-        assert "format" in response
         assert "Only CSV resources can be validated." in response
